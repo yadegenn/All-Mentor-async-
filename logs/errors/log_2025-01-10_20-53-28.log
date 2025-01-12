@@ -1,0 +1,20 @@
+2025-01-10 20:53:37,988 ERROR Task exception was never retrieved
+future: <Task finished name='Task-15' coro=<AsyncTeleBot.process_new_updates() done, defined at /home/emilgoo/.var/app/com.jetbrains.PyCharm-Community/data/python/lib/python3.11/site-packages/telebot/async_telebot.py:603> exception=AttributeError("'MessageReactionUpdated' object has no attribute 'message_thread_id'")>
+Traceback (most recent call last):
+  File "/home/emilgoo/.var/app/com.jetbrains.PyCharm-Community/data/python/lib/python3.11/site-packages/telebot/async_telebot.py", line 745, in process_new_updates
+    await self.process_new_message_reaction(new_message_reactions)
+  File "/home/emilgoo/.var/app/com.jetbrains.PyCharm-Community/data/python/lib/python3.11/site-packages/telebot/async_telebot.py", line 790, in process_new_message_reaction
+    await self._process_updates(self.message_reaction_handlers, message_reaction, 'message_reaction')
+  File "/home/emilgoo/.var/app/com.jetbrains.PyCharm-Community/data/python/lib/python3.11/site-packages/telebot/async_telebot.py", line 523, in _process_updates
+    await asyncio.gather(*tasks)
+  File "/home/emilgoo/.var/app/com.jetbrains.PyCharm-Community/data/python/lib/python3.11/site-packages/telebot/async_telebot.py", line 549, in _run_middlewares_and_handlers
+    middleware_result = await middleware.pre_process(message, data)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/emilgoo/Проекты/All Mentor (async)/middlewares/timeout.py", line 69, in pre_process
+    await self.process_message_reaction(update)
+  File "/home/emilgoo/Проекты/All Mentor (async)/middlewares/timeout.py", line 89, in process_message_reaction
+    print(reaction.message_thread_id)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'MessageReactionUpdated' object has no attribute 'message_thread_id'
+2025-01-10 20:53:50,038 ERROR Infinity polling: polling exited
+2025-01-10 20:53:50,038 ERROR Break infinity polling

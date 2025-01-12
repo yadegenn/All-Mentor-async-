@@ -1,0 +1,33 @@
+2025-01-06 15:51:56,101 Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-01-06 15:51:56,102 Added job "checker" to job store "default"
+2025-01-06 15:51:56,102 Scheduler started
+2025-01-06 15:51:56,103 Looking for jobs to run
+2025-01-06 15:51:56,104 Next wakeup is due at 2025-01-06 15:52:01.101409+05:00 (in 4.997418 seconds)
+2025-01-06 15:52:01,103 Looking for jobs to run
+2025-01-06 15:52:01,103 Next wakeup is due at 2025-01-06 15:52:06.101409+05:00 (in 4.997609 seconds)
+2025-01-06 15:52:01,104 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 15:52:06 +05)" (scheduled at 2025-01-06 15:52:01.101409+05:00)
+2025-01-06 15:52:01,104 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 15:52:06 +05)" executed successfully
+2025-01-06 15:52:04,957 Unhandled exception (full traceback for debug level): A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+2025-01-06 15:52:05,529 An error occurred код ошибки: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+Traceback (most recent call last):
+  File "/home/emilgoo/Проекты/All Mentor (async)/main_telebot.py", line 549, in main
+    await asyncio.gather(bot.infinity_polling(allowed_updates=[
+  File "/home/emilgoo/Проекты/All Mentor (async)/main_telebot.py", line 542, in updates
+    updates = await bot.get_updates()
+              ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/emilgoo/.var/app/com.jetbrains.PyCharm-Community/data/python/lib/python3.11/site-packages/telebot/async_telebot.py", line 240, in get_updates
+    json_updates = await asyncio_helper.get_updates(self.token, offset, limit, timeout, allowed_updates, request_timeout)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/emilgoo/.var/app/com.jetbrains.PyCharm-Community/data/python/lib/python3.11/site-packages/telebot/asyncio_helper.py", line 252, in get_updates
+    return await _process_request(token, method_name, params=params, request_timeout=request_timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/emilgoo/.var/app/com.jetbrains.PyCharm-Community/data/python/lib/python3.11/site-packages/telebot/asyncio_helper.py", line 99, in _process_request
+    raise e
+  File "/home/emilgoo/.var/app/com.jetbrains.PyCharm-Community/data/python/lib/python3.11/site-packages/telebot/asyncio_helper.py", line 95, in _process_request
+    json_result = await _check_result(url, resp)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/emilgoo/.var/app/com.jetbrains.PyCharm-Community/data/python/lib/python3.11/site-packages/telebot/asyncio_helper.py", line 276, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.asyncio_helper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+2025-01-06 15:52:05,532 Infinity polling: polling exited
+2025-01-06 15:52:05,533 Break infinity polling

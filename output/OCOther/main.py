@@ -1,0 +1,720 @@
+import asyncio
+import copy
+import html
+import logging
+import traceback
+from datetime import timedelta, datetime
+from io import StringIO
+
+import aiofiles
+import aiosqlite
+import pytz
+import telebot
+import os
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+import pandas as pd
+from telebot.states.asyncio.middleware import StateMiddleware
+from telebot import asyncio_filters
+from telebot.async_telebot import AsyncTeleBot
+from telebot.asyncio_storage import StateMemoryStorage
+from telebot.states import StatesGroup, State
+from telebot.states.asyncio import StateContext
+from telebot.types import InputMediaPhoto, InputMediaVideo, InputMediaDocument, ReplyParameters, InlineKeyboardMarkup, \
+    InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton, InputFile, InputMediaAudio
+from telebot.types import MessageEntity
+from middlewares.album import AlbumMiddleware
+from middlewares.db import DatabaseMiddleware
+from aiohttp import ClientSession
+from telebot.asyncio_handler_backends import ContinueHandling
+from middlewares.timeout import UserTimeChecker, user_data, group_data
+from fluentogram import FluentTranslator, TranslatorHub
+from fluent_compiler.bundle import FluentBundle
+
+# данные
+TOKEN = '7422804332:AAFggHHLbKW0owmHss_yeb8J5jW_BkjW3cw'
+state_storage = StateMemoryStorage()
+bot = AsyncTeleBot(TOKEN, state_storage=state_storage)
+scheduler = AsyncIOScheduler()
+GROUP_ID = -1002235153000
+db_path = "OCOther/bot.db"
+WORK_CHAT_FILE = 'OCOther/work_chat.txt'
+DEVELOPER_ID = 5434361630
+ADMINS = [5434361630, 629454540]
+is_weekend_have = False
+is_latehour_have = False
+is_photo_start = True
+weekend = False
+latehour = False
+send_weekend_users = []
+send_latehour_users = []
+
+
+translator_hub = TranslatorHub(
+    locales_map={
+        "ru": "ru"
+    },
+    translators=[
+        FluentTranslator(
+            locale="ru",
+            translator=FluentBundle.from_files(
+                locale="ru-RU", filenames=["OCOther/locales/ru.ftl"]
+            )
+        ),
+    ],
+    root_locale="ru"
+)
+def _(key: str, **kwargs) -> str:
+    translator = translator_hub.get_translator_by_locale("ru")
+    return translator.get(key, **kwargs)
+
+
+
+def load_work_chats():
+    if os.path.exists(WORK_CHAT_FILE):
+        with open(WORK_CHAT_FILE, 'r') as f:
+            return set(int(line.strip()) for line in f)
+    return set()
+
+
+async def save_work_chats(work_chats):
+    try:
+        async with aiofiles.open(WORK_CHAT_FILE, 'w') as f:
+            await f.write('\n'.join(str(chat_id) for chat_id in work_chats))
+    except Exception as e:
+        print(f"Error saving work chats: {e}")
+
+work_chats = load_work_chats()
+@bot.message_handler(commands=['remove_work_chat'])
+async def handle_remove_work_chat(message):
+    if message.chat.id in ADMINS:
+        args = message.text.split()
+        if len(args) != 2:
+            await bot.reply_to(message, "Usage: /remove_work_chat <topic_id>")
+            return
+        try:
+            topic_id = int(args[1])
+            if topic_id in work_chats:
+                work_chats.remove(topic_id)
+                await save_work_chats(work_chats)
+                await bot.reply_to(message, f"Topic ID {topic_id} removed from work chats.")
+            else:
+                await bot.reply_to(message, f"Topic ID {topic_id} is not in the work chats list.")
+        except ValueError:
+            await bot.reply_to(message, "Invalid topic ID. Please provide a valid integer.")
+    else:
+        await bot.reply_to(message, "You don't have permission to use this command.")
+@bot.message_handler(commands=['add_work_chat'])
+async def handle_add_work_chat(message):
+    if message.chat.id in ADMINS:
+        args = message.text.split()
+        if len(args) != 2:
+            await bot.reply_to(message, "Usage: /add_work_chat <topic_id>")
+            return
+        try:
+            topic_id = int(args[1])
+            work_chats.add(topic_id)
+            await save_work_chats(work_chats)
+            await bot.reply_to(message, f"Topic ID {topic_id} added to work chats.")
+        except ValueError:
+            await bot.reply_to(message, "Invalid topic ID. Please provide a valid integer.")
+    else:
+        await bot.reply_to(message, "You don't have permission to use this command.")
+
+
+class AdminStates(StatesGroup):
+    upload_data = State()
+    spam = State()
+
+
+@bot.message_handler(commands=['admin'], func=lambda message: message.chat.type == "private" )
+async def handle_admin(message):
+    if message.chat.id in ADMINS:
+        db_main = await aiosqlite.connect(db_path)
+        user_count = None
+        async with db_main.execute('SELECT COUNT(*) FROM users') as cursor:
+            row = await cursor.fetchone()
+            if(row):
+                user_count = row[0]
+        markup = InlineKeyboardMarkup()
+        markup.add(InlineKeyboardButton("Получить данные", callback_data="get_data"))
+        markup.add(InlineKeyboardButton("Загрузить данные", callback_data="upload_data"))
+        markup.add(InlineKeyboardButton("Рассылка", callback_data="broadcast"))
+        await bot.send_message(message.chat.id, f"Админ панель\nКоличество пользователей: {user_count}", reply_markup=markup)
+    else:
+        await bot.send_message(message.chat.id, "У вас нет доступа к этой команде.")
+
+
+@bot.callback_query_handler(func=lambda call: call.data in ["get_data", "upload_data", "broadcast"])
+async def handle_admin_callback(call, state: StateContext):
+    if call.message.chat.id in ADMINS:
+        if call.data == "get_data":
+            db_main = await aiosqlite.connect(db_path)
+            async with db_main.execute('SELECT * FROM users') as cursor:
+                rows = await cursor.fetchall()
+
+            # Создание DataFrame
+            df = pd.DataFrame(rows, columns=['chat_id', 'topic_id', 'user_name'])
+
+            # Сохранение данных в файл .txt
+            df.to_csv('user_topics.txt', sep=' ', index=False)
+
+            # Отправка файла пользователю
+            with open('user_topics.txt', 'rb') as file:
+                await bot.send_document(call.message.chat.id, file)
+
+        elif call.data == "upload_data":
+            await bot.send_message(call.message.chat.id, "Пожалуйста, загрузите файл CSV с данными.")
+            await state.set(AdminStates.upload_data)
+
+        elif call.data == "broadcast":
+            await bot.send_message(call.message.chat.id, "Отправьте сообщение и оно будет разослано")
+            await state.set(AdminStates.spam)
+    else:
+        await bot.send_message(call.message.chat.id, "У вас нет доступа к этой функции.")
+
+@bot.message_handler(state=AdminStates.spam, content_types=telebot.util.content_type_media, func=lambda message: message.chat.type == "private" and message.chat.id in ADMINS)
+async def spam(message, state: StateContext, album=None, db=None):
+    reply_message_id = None
+
+    all_users = await db.get_all_users()
+
+
+    if album:
+        count_photos = len(album)
+        media = []
+        for i in album:
+            if (i.photo):
+                media.append(
+                    InputMediaPhoto(media=i.photo[-1].file_id, caption=i.caption, caption_entities=i.caption_entities))
+            elif (i.video):
+                media.append(
+                    InputMediaVideo(media=i.video.file_id, caption=i.caption, caption_entities=i.caption_entities))
+            elif (i.document):
+                media.append(InputMediaDocument(media=i.document.file_id, caption=i.caption,
+                                                caption_entities=i.caption_entities))
+        for i in all_users:
+            await bot.send_media_group(chat_id=i.chat_id, media=media, reply_to_message_id=reply_message_id)
+        await state.delete()
+    else:
+        for i in all_users:
+            await bot.copy_message(chat_id=i.chat_id, from_chat_id=message.chat.id, message_id=message.message_id,
+                               reply_to_message_id=reply_message_id)
+        await state.delete()
+@bot.message_handler(state=AdminStates.upload_data, content_types=['document'])
+async def handle_document(message, state: StateContext):
+    if message.chat.id in ADMINS and message.document.mime_type == 'text/plain' and message.chat.type == 'private':
+
+        try:
+            file_info = await bot.get_file(message.document.file_id)
+            downloaded_file = await bot.download_file(file_info.file_path)
+
+            # Сохранение загруженного файла
+            async with aiofiles.open('uploaded_user_topics.txt', 'wb') as new_file:
+                await new_file.write(downloaded_file)
+
+            # Чтение файла как текста
+            async with aiofiles.open('uploaded_user_topics.txt', 'r', encoding='utf-8') as file:
+                data = await file.read()
+
+            # Преобразование текста в DataFrame
+            df = pd.read_csv(StringIO(data), delimiter=' ')  # Предполагая, что данные разделены пробелом. Измените delimiter, если используются другие разделители.
+
+            async with aiosqlite.connect(db_path) as db:
+                await db.executemany('INSERT OR REPLACE INTO users (chat_id, topic_id, user_name) VALUES (?, ?, ?)',
+                                     df.values)
+                await db.commit()
+
+            await bot.send_message(message.chat.id, "Данные успешно загружены.")
+        except Exception as e:
+            tb = traceback.extract_tb(e.__traceback__)
+            last_trace = tb[-1]
+            line_number = last_trace.lineno
+            line_content = last_trace.line
+            await bot.send_message(DEVELOPER_ID,
+                                   f"Ошибка при отправке документа администратором ({message.message_id}) строка {line_number}: {line_content} код ошибки: {e}")
+    else:
+        await bot.send_message(message.chat.id, "Пожалуйста, загрузите файл TXT.")
+
+async def get_topic_id_by_chat_id(chat_id):
+    db_main = await aiosqlite.connect(db_path)
+    async with db_main.execute('SELECT topic_id FROM users WHERE chat_id = ?', (chat_id,)) as cursor:
+        row = await cursor.fetchone()
+        if row:
+            return row[0]
+        else:
+            return None
+async def setAlertIcon(topic_id):
+    try:
+        if(topic_id):
+            await bot.edit_forum_topic(chat_id=GROUP_ID,message_thread_id=topic_id,icon_custom_emoji_id='5379748062124056162')
+    except Exception as e:
+        pass
+async def days_ping(chat_id):
+    await bot.send_message(chat_id, "Здравствуйте, чем могу помочь?")
+@bot.message_handler(commands=['start'])
+async def handle_start(message, album: list = None, db=None, checker=None):
+    if db is None:
+        await bot.reply_to(message, "Ошибка подключения к базе данных ")
+        return
+    all_users = await db.get_all_users()
+    user_name = message.from_user.username or message.from_user.first_name
+    welcome_message = _('start-message', name=user_name)
+    if (is_photo_start):
+        await bot.send_photo(message.chat.id, InputFile("OCOther/main.png"), caption=welcome_message, parse_mode='HTML')
+    else:
+        await bot.send_message(message.chat.id, welcome_message, parse_mode='HTML')
+
+
+def formating(text: str | None,last_entities, new_entities, last_text):
+    if (last_text == None):
+        return None, None
+    count_text = len(text)
+    if last_entities is not None:
+
+        for entity in last_entities:
+            new_entity = MessageEntity(
+                type=entity.type,
+                offset=entity.offset + count_text,
+                length=entity.length,
+                url=getattr(entity, 'url', None),
+                user = entity.user,
+                custom_emoji_id=entity.custom_emoji_id,
+                language=str(entity.language)
+            )
+            new_entities.append(new_entity)
+    return (text+last_text), new_entities
+
+def text_message_format(message, edit=False):
+    user_name = html.escape(message.from_user.username or message.from_user.first_name)
+    result_text, result_entities = message.text, message.entities
+
+    if (message.forward_from or message.forward_from_chat):
+
+        forward_user_name = html.escape(
+            message.forward_from_chat.title or message.forward_from.username if message.forward_from_chat else message.forward_from.username or message.forward_from.first_name)
+        prefix = f"Отправлено от {user_name} «переслали от {forward_user_name}»\n"
+        count_text = len(prefix)
+        if (message.text):
+            count_text = count_text+len(message.text)
+        if(count_text>=4096):
+            return message.text, message.entities
+        result_text, result_entities = formating(
+            prefix, message.entities, [
+                MessageEntity(type="blockquote", offset=0,
+                              length=14 + len(user_name) + 15 + len(forward_user_name) + 2),
+                MessageEntity(type="text_link", offset=0, length=14 + len(user_name),
+                              url=f'tg://user?id={message.from_user.id}'),
+                MessageEntity(type="text_link", offset=15 + len(user_name),
+                              length=15 + len(forward_user_name) + 1,
+                              url=f'https://t.me/{message.forward_from_chat.username}' if message.forward_from_chat else f'tg://user?id={message.forward_from.id}')
+            ], message.text)
+    else:
+        prefix = f"Отправлено от {user_name}{' (edited)' if edit else ''}\n"
+        count_text = len(prefix)
+        if (message.text):
+            count_text = count_text + len(message.text)
+        if (count_text >= 4096):
+            return message.text, message.entities
+        result_text, result_entities = formating(prefix, message.entities, [
+            MessageEntity(type="blockquote", offset=0, length=14 + len(user_name) + 1 + (9 if edit else 0)),
+            MessageEntity(type="text_link", offset=0, length=14 + len(user_name) + 1,
+                          url=f'tg://user?id={message.from_user.id}')], message.text)
+    return result_text, result_entities
+
+def caption_messages(message, edit=False):
+    user_name = html.escape(message.from_user.username or message.from_user.first_name)
+    result_text, result_entities = message.caption, message.caption_entities
+    if (message.forward_from or message.forward_from_chat):
+      forward_user_name = html.escape(message.forward_from_chat.title or message.forward_from.username if message.forward_from_chat else message.forward_from.username or message.forward_from.first_name)
+      prefix = f"Отправлено от {user_name} «переслали от {forward_user_name}»\n"
+      count_text = len(prefix)
+      if (message.caption):
+          count_text = count_text + len(message.caption)
+      if (count_text >= 1024):
+          return message.caption, message.caption_entities
+      result_text, result_entities = formating(
+          prefix, message.caption_entities, [
+              MessageEntity(type="blockquote", offset=0,
+                            length=14 + len(user_name) + 15 + len(forward_user_name) + 2),
+              MessageEntity(type="text_link", offset=0, length=14 + len(user_name),
+                            url=f'tg://user?id={message.from_user.id}'),
+              MessageEntity(type="text_link", offset=15 + len(user_name),
+                            length=15 + len(forward_user_name) + 1,
+                            url=f'https://t.me/{message.forward_from_chat.username}' if message.forward_from_chat else f'tg://user?id={message.forward_from.id}')
+          ], message.caption)
+    else:
+        prefix = f"Отправлено от {user_name}{' (edited)' if edit else ''}\n"
+        count_text = len(prefix)
+        if (message.caption):
+            count_text = count_text + len(message.caption)
+        if (count_text >= 1024):
+            return message.caption, message.caption_entities
+        result_text, result_entities = formating(prefix, message.caption_entities, [
+          MessageEntity(type="blockquote", offset=0, length=14 + len(user_name) + 1 + (9 if edit else 0)),
+          MessageEntity(type="text_link", offset=0, length=14 + len(user_name) + 1,
+                        url=f'tg://user?id={message.from_user.id}')], message.caption)
+    return result_text, result_entities
+
+def get_content_data(message):
+    return {
+        "photo": {
+            "file_id": message.photo[-1].file_id if message.content_type == "photo" else None,
+            "send_function": bot.send_photo,
+            "send_param": "photo"
+        },
+        "document": {
+            "file_id": message.document.file_id if message.content_type == "document" else None,
+            "send_function": bot.send_document,
+            "send_param": "document"
+        },
+        "video": {
+            "file_id": message.video.file_id if message.content_type == "video" else None,
+            "send_function": bot.send_video,
+            "send_param": "video"
+        },
+        "photo_caption_edit": {
+            "file_id": message.photo[-1].file_id if message.content_type == "photo" else None
+        },
+        "video_caption_edit": {
+            "file_id": message.video.file_id if message.content_type == "video" else None
+        },
+        "document_caption_edit": {
+            "file_id": message.document.file_id if message.content_type == "document" else None
+        }
+    }
+
+
+
+
+@bot.edited_message_handler(content_types=telebot.util.content_type_media)
+async def handle_edited_message(message, db=None):
+    try:
+        if message.chat.type == 'private':
+            content_data = get_content_data(message)
+            topic_message_id = await db.get_group_message_id_by_private_message(message.message_id)
+            if message.content_type+"_caption_edit" in content_data:
+                data = content_data[message.content_type]
+                if(data['file_id']):
+                    await bot.reply_to(message,"Бот пока не поддерживает редактирование файлов")
+                else:
+                    result_text, result_entities = caption_messages(message, True)
+
+                    # Вызываем соответствующую функцию
+                    await bot.edit_message_caption(
+                        chat_id=GROUP_ID,
+                        caption=result_text,
+                        caption_entities=result_entities,
+                        message_id=topic_message_id
+                    )
+            elif (message.content_type == "text"):
+                result_text, result_entities = text_message_format(message, True)
+                await bot.edit_message_text(chat_id=GROUP_ID, message_id=topic_message_id,text=result_text, entities=result_entities)
+            else:
+                # редактирование всего остального
+                pass
+        elif message.chat.id == int(GROUP_ID):
+            content_data = get_content_data(message)
+            chat_id = await db.get_chat_id_by_topic_id()
+            private_message_id = await db.get_private_message_id_by_group_message(message.message_id)
+            if message.content_type+"_caption_edit" in content_data:
+
+                data = content_data[message.content_type]
+
+                if (data['file_id']):
+                    await bot.reply_to(message, "Бот пока не поддерживает редактирование файлов")
+                else:
+
+                    # Вызываем соответствующую функцию
+                    await bot.edit_message_caption(
+                        chat_id=chat_id,
+                        caption=message.caption,
+                        caption_entities=message.caption_entities,
+                        message_id=private_message_id
+                    )
+            elif (message.content_type == "text"):
+                await bot.edit_message_text(chat_id=chat_id, message_id=private_message_id,text=message.text, entities=message.entities)
+            else:
+                # редактирование всего остального
+                pass
+    except Exception as e:
+        if "message to edit not found" in str(e):
+            if(message.chat.type == 'private'):
+                await bot.reply_to(message,
+                                   "Ваше сообщение не было отредактировано, так как мы не смогли получить оригинальное сообщение. Возможно, оно было удалено посредником, не успело отправиться или недавно произошло обновление и старые сообщения больше не функциональны. Попробуйте отредактировать это сообщение снова или отредактировать соседнее сообщение. Если все условия были соблюдены и ошибка повторяется, сообщите о ней.")
+            elif message.chat.id == int(GROUP_ID):
+                await bot.reply_to(message,
+                                   "Ваше сообщение не было отредактировано, так как мы не смогли получить оригинальное сообщение. Возможно, оно было удалено пользователем, не успело отправиться или недавно произошло обновление и старые сообщения больше не функциональны. Попробуйте отредактировать это сообщение снова или отредактировать соседнее сообщение. Если все условия были соблюдены и ошибка повторяется, сообщите о ней.")
+        else:
+            tb = traceback.extract_tb(e.__traceback__)
+            last_trace = tb[-1]
+            line_number = last_trace.lineno
+            line_content = last_trace.line
+            mess = "чате с пользователем" if message.chat.id else "группе"
+            await bot.send_message(DEVELOPER_ID,
+                                   f"Ошибка при редактировании сообщения в {mess} ({message.message_id}) строка {line_number}: {line_content} код ошибки: {e}")
+@bot.message_reaction_handler(func=lambda message: True)
+async def get_reactions(message, album: list = None, db=None):
+    try:
+        if message.chat.type == 'private':
+            topic_message_id = await db.get_group_message_id_by_private_message(message.message_id)
+            await bot.set_message_reaction(chat_id=GROUP_ID, message_id=topic_message_id,
+                                     reaction=message.new_reaction)
+        elif message.chat.id == int(GROUP_ID):
+            chat_id = await db.get_chat_id_by_topic_id()
+            private_message_id = await db.get_private_message_id_by_group_message(message.message_id)
+            await bot.set_message_reaction(chat_id=chat_id, message_id=private_message_id,
+                                           reaction=message.new_reaction)
+    except Exception as e:
+
+        if "message to react not found" in str(e):
+            await bot.reply_to(message,
+                               "Ваша реакция не была поставлена, так как мы не смогли получить оригинальное сообщение. Возможно, оно было удалено, являлось рассылкой, сообщением бота  или недавно произошло обновление и старые сообщения больше не функциональны. Попробуйте поставить реакцию на соседнее сообщение или сообщить об ошибке если все условия были соблюдены.")
+        elif "'MessageReactionUpdated' object has no attribute 'message_thread_id'" in str(e):
+            await bot.reply_to(message,
+                               "Ваша реакция не была поставлена, так как мы не смогли получить оригинальное сообщение. Скорее всего вы поставили реакцию на сообщение бота. Попробуйте поставить реакцию на соседнее сообщение или сообщить об ошибке если все условия были соблюдены.")
+        else:
+            tb = traceback.extract_tb(e.__traceback__)
+            last_trace = tb[-1]
+            line_number = last_trace.lineno
+            line_content = last_trace.line
+            mess = "чате с пользователем" if message.chat.id else "группе"
+            await bot.send_message(DEVELOPER_ID,
+                                   f"Ошибка при установление эмоции на сообщение в {mess} ({message.message_id}) строка {line_number}: {line_content} код ошибки: {e}")
+
+@bot.message_handler(content_types=telebot.util.content_type_media, func=lambda message: message.chat.type == "private" )
+async def private_messages(message, album: list = None, db=None):
+    global weekend, latehour, send_weekend_users, send_latehour_users
+    try:
+        topic_id = int(await db.get_or_create_topic())
+        chat_id = message.chat.id
+        reply_message_id = None
+
+        # проверки
+        if(weekend and message.chat.id not in  send_weekend_users):
+            await bot.reply_to(message,"Сегодня вам могут не ответить, так как у сервиса выходной.")
+            send_weekend_users.append(message.chat.id)
+        if(latehour and message.chat.id not in send_latehour_users):
+            await bot.reply_to(message,"Сегодня вам уже могут не ответить, так как после 20:00 по московскому времени посредники не работают.")
+            send_latehour_users.append(message.chat.id)
+
+
+        if (message.reply_to_message):
+            reply_message_id = await db.get_group_message_id_by_private_message(
+                int(message.json['reply_to_message']['message_id']))
+        if album:
+            count_photos = len(album)
+            media = []
+            user_name = html.escape(message.from_user.username or message.from_user.first_name)
+            for i in album:
+                result_text, result_entities = caption_messages(i)
+                if (i.photo):
+                    media.append(InputMediaPhoto(media=i.photo[-1].file_id, caption=result_text, caption_entities=result_entities))
+                elif(i.video):
+                    media.append(InputMediaVideo(media=i.video.file_id, caption=result_text, caption_entities=result_entities))
+                elif (i.document):
+                    media.append(InputMediaDocument(media=i.document.file_id, caption=result_text, caption_entities=result_entities))
+                elif (i.audio):
+                    media.append(InputMediaAudio(media=i.audio.file_id, caption=result_text,
+                                                    caption_entities=result_entities))
+            await db.add_message_to_db(await bot.send_media_group(chat_id=GROUP_ID,media=media,message_thread_id=topic_id,reply_to_message_id=reply_message_id), topic_id, album)
+        else:
+
+            content_data = get_content_data(message)
+
+            if message.content_type in content_data:
+                data = content_data[message.content_type]
+
+                if data["file_id"]:  # Если file_id определен
+                    result_text, result_entities = caption_messages(message)
+
+                    # Вызываем соответствующую функцию
+                    await db.add_message_to_db(await data["send_function"](
+                        chat_id=GROUP_ID,
+                        caption=result_text,
+                        caption_entities=result_entities,
+                        message_thread_id=topic_id,
+                        reply_to_message_id = reply_message_id,
+                        **{data["send_param"]: data["file_id"]}
+                    ),topic_id, None)
+            elif(message.content_type == "text"):
+                result_text, result_entities = text_message_format(message)
+                await db.add_message_to_db(await bot.send_message(chat_id=GROUP_ID, text=result_text, entities=result_entities,
+                                       message_thread_id=topic_id, reply_to_message_id=reply_message_id),topic_id, None)
+
+            else:
+                await db.add_message_to_db(await bot.copy_message(chat_id=GROUP_ID, from_chat_id=message.chat.id, message_id=message.message_id, message_thread_id=topic_id), topic_id, None)
+    except Exception as e:
+        if "Too Many Requests" in str(e):
+            await bot.reply_to(message,
+                               "Ваше сообщение не было доставлено, так как Telegram посчитал его спамом. Попробуйте отправить его еще раз.")
+        elif "message to be replied not found" in str(e):
+            await bot.reply_to(message,
+                               "Ваше сообщение не было доставлено, так как мы не смогли найти оригинальное сообщение. Возможно, оно было удалено, являлось рассылкой, сообщением бота или недавно произошло обновление и старые сообщения больше не функциональны. Попробуйте отправить его еще раз без ответа на это сообщение или ответить на соседнее сообщение.")
+        elif "message thread not found" in str(e):
+            await db.delete_topic_messages(topic_id)
+            await db.create_new_topic()
+            await private_messages(message,album,db)
+
+        else:
+            tb = traceback.extract_tb(e.__traceback__)
+            last_trace = tb[-1]
+            line_number = last_trace.lineno
+            line_content = last_trace.line
+            await bot.send_message(DEVELOPER_ID,
+                                   f"Ошибка при отправке сообщения от пользователя ({message.chat.id}) строка {line_number}: {line_content} код ошибки: {e}")
+
+
+
+@bot.message_handler(content_types=telebot.util.content_type_media, func=lambda message: message.chat.id == GROUP_ID and message.message_thread_id not in work_chats and message.message_thread_id!=None )
+async def group_messages(message, album: list = None, db=None):
+    reply_message_id = None
+    try:
+        chat_id = await db.get_chat_id_by_topic_id()
+        if 'reply_to_message' in message.json and 'forum_topic_created' in message.json['reply_to_message']:
+            pass
+        else:
+            reply_message_id = await db.get_private_message_id_by_group_message(int(message.json['reply_to_message']['message_id']))
+        if album:
+            count_photos = len(album)
+            media = []
+            for i in album:
+                if (i.photo):
+                    media.append(InputMediaPhoto(media=i.photo[-1].file_id, caption=i.caption, caption_entities=i.caption_entities))
+                elif(i.video):
+                    media.append(InputMediaVideo(media=i.video.file_id, caption=i.caption, caption_entities=i.caption_entities))
+                elif (i.document):
+                    media.append(InputMediaDocument(media=i.document.file_id, caption=i.caption, caption_entities=i.caption_entities))
+                elif (i.audio):
+                    media.append(InputMediaAudio(media=i.audio.file_id, caption=result_text,
+                                                    caption_entities=result_entities))
+            await db.add_message_to_db(await bot.send_media_group(chat_id=chat_id,media=media, reply_to_message_id=reply_message_id), message.message_thread_id, album)
+        else:
+            await db.add_message_to_db(await bot.copy_message(chat_id=chat_id, from_chat_id=message.chat.id, message_id=message.message_id, reply_to_message_id=reply_message_id), message.message_thread_id, None)
+    except Exception as e:
+        if "Too Many Requests" in str(e):
+            await bot.reply_to(message,
+                               "Ваше сообщение не было доставлено, так как Telegram посчитал его спамом. Попробуйте отправить его еще раз.")
+        elif "message to be replied not found" in str(e):
+            await bot.reply_to(message,
+                               "Ваше сообщение не было доставлено, так как мы не смогли найти оригинальное сообщение. Возможно, оно было удалено, являлось рассылкой, сообщением бота или недавно произошло обновление и старые сообщения больше не функциональны. Попробуйте отправить его еще раз без ответа на это сообщение или ответить на соседнее сообщение.")
+        elif "chat not found" in str(e):
+            pass
+        else:
+            tb = traceback.extract_tb(e.__traceback__)
+            last_trace = tb[-1]
+            line_number = last_trace.lineno
+            line_content = last_trace.line
+            await bot.send_message(DEVELOPER_ID,
+                                   f"Ошибка при отправке сообщения от посредника в теме ({message.message_thread_id}) строка {line_number}: {line_content} код ошибки: {e}")
+
+async def scheduler_func():
+    scheduler.add_job(checker, "interval", seconds=5)
+    scheduler.start()
+# Запуск бота
+async def main():
+    print("Бот запущен!")
+    setup_logging()
+    try:
+        await asyncio.gather(bot.infinity_polling(allowed_updates=[
+            'message',
+            'edited_message',
+            'channel_post',
+            'edited_channel_post',
+            'message_reaction',
+            'message_reaction_count',
+            'callback_query',
+            'chat_member'
+        ]),scheduler_func())
+    except Exception as e:
+        logging.error(f"An error occurred код ошибки: {e}", exc_info=True)
+async def checker():
+    global weekend, latehour
+    for i in rules_checker:
+        rules = i
+        rule_type = rules["type"]
+        if(rule_type=="private"):
+
+            rule_timeout = rules["timeout"]
+            rule_action = rules["action"]
+            for i in copy.deepcopy(user_data):
+                if (user_data[i] == "delete"):
+                    del user_data[i]
+                elif (isinstance(user_data[i], datetime)):
+                    timeout_date = user_data[i]+rule_timeout
+                    if(timeout_date<=datetime.now()):
+                        await rule_action(i)
+                        del user_data[i]
+        elif(rule_type=="group"):
+            rule_timeout = rules["timeout"]
+            rule_action = rules["action"]
+            for i in copy.deepcopy(group_data):
+                if (group_data[i] == "delete"):
+                    del group_data[i]
+                elif (isinstance(group_data[i], datetime)):
+                    timeout_date = group_data[i]+rule_timeout
+                    if(timeout_date<=datetime.now()):
+                        await rule_action(i)
+                        del group_data[i]
+        elif(rule_type=="weekend"):
+            rule_day = rules["day"]
+            moscow_tz = pytz.timezone('Europe/Moscow')
+            moscow_time = datetime.now(moscow_tz)
+            day_of_week = moscow_time.weekday()
+            if(day_of_week==rule_day):
+                weekend = True
+            else:
+                weekend = False
+        elif(rule_type=="latehour"):
+            rule_hour = int(rules["hour"])
+            moscow_tz = pytz.timezone('Europe/Moscow')
+            moscow_time = datetime.now(moscow_tz)
+            current_hour = moscow_time.hour
+            if(current_hour>=rule_hour):
+                latehour = True
+            else:
+                latehour = False
+def setup_logging():
+    # Создание директорий для логов
+    error_log_dir = "OCOther/logs/errors"
+    debug_log_dir = "OCOther/logs/debug"
+
+    if not os.path.exists(error_log_dir):
+        os.makedirs(error_log_dir)
+    if not os.path.exists(debug_log_dir):
+        os.makedirs(debug_log_dir)
+
+    # Форматирование текущего времени для имен файлов логов
+    current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+
+    # Создание файлов для логов ошибок и отладочных сообщений
+    error_log_file = os.path.join(error_log_dir, f"log_{current_time}.log")
+    debug_log_file = os.path.join(debug_log_dir, f"log_{current_time}.log")
+
+    # Настройка логгера для ошибок
+    error_handler = logging.FileHandler(error_log_file, 'a', 'utf-8')
+    error_handler.setLevel(logging.ERROR)
+    error_formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+    error_handler.setFormatter(error_formatter)
+
+    # Настройка логгера для отладочных сообщений
+    debug_handler = logging.FileHandler(debug_log_file, 'a', 'utf-8')
+    debug_handler.setLevel(logging.DEBUG)
+    debug_formatter = logging.Formatter('%(asctime)s %(message)s')  # Fixed formatter string
+    debug_handler.setFormatter(debug_formatter)
+
+    # Настройка основного логгера
+    logging.basicConfig(level=logging.DEBUG, handlers=[error_handler, debug_handler])
+if __name__ == "__main__":
+    rules_checker = [
+        {"type": "private", "timeout": timedelta(hours=1), "action": days_ping},
+        {"type": "group", "timeout": timedelta(hours=1), "action": setAlertIcon}
+    ]
+    rules_checker.append({"type": "weekend", "day": 5} if is_weekend_have else {"type": "none"})
+    rules_checker.append({"type": "weekend", "day": 6} if is_weekend_have else {"type": "none"})
+    rules_checker.append({"type": "latehour", "hour": 20} if is_latehour_have else {"type": "none"})
+    bot.add_custom_filter(asyncio_filters.StateFilter(bot))
+    bot.setup_middleware(StateMiddleware(bot))
+    bot.setup_middleware(UserTimeChecker(GROUP_ID, db_path))
+    bot.setup_middleware(DatabaseMiddleware(db_path, bot,GROUP_ID))
+    bot.setup_middleware(AlbumMiddleware())
+    asyncio.run(main())

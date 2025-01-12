@@ -1,0 +1,159 @@
+2025-01-06 16:19:14,127 Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-01-06 16:19:14,129 Added job "checker" to job store "default"
+2025-01-06 16:19:14,129 Scheduler started
+2025-01-06 16:19:14,145 Looking for jobs to run
+2025-01-06 16:19:14,145 Next wakeup is due at 2025-01-06 16:19:19.127416+05:00 (in 4.981971 seconds)
+2025-01-06 16:19:18,084 executing <function connect.<locals>.connector at 0x7f782b2ca160>
+2025-01-06 16:19:18,088 operation <function connect.<locals>.connector at 0x7f782b2ca160> completed
+2025-01-06 16:19:18,088 executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f782b27df30>, 'SELECT topic_id FROM users WHERE chat_id = ?', (5434361630,))
+2025-01-06 16:19:18,091 operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f782b27df30>, 'SELECT topic_id FROM users WHERE chat_id = ?', (5434361630,)) completed
+2025-01-06 16:19:18,091 executing functools.partial(<built-in method fetchone of sqlite3.Cursor object at 0x7f782b2d8040>)
+2025-01-06 16:19:18,091 operation functools.partial(<built-in method fetchone of sqlite3.Cursor object at 0x7f782b2d8040>) completed
+2025-01-06 16:19:18,091 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x7f782b2d8040>)
+2025-01-06 16:19:18,091 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x7f782b2d8040>) completed
+2025-01-06 16:19:18,092 executing <function connect.<locals>.connector at 0x7f782b2cb920>
+2025-01-06 16:19:18,092 operation <function connect.<locals>.connector at 0x7f782b2cb920> completed
+2025-01-06 16:19:18,092 executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f782b27e2f0>, 'PRAGMA foreign_keys = ON', [])
+2025-01-06 16:19:18,092 operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f782b27e2f0>, 'PRAGMA foreign_keys = ON', []) completed
+2025-01-06 16:19:18,092 executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f782b27e2f0>, '\n            CREATE TABLE IF NOT EXISTS users (\n                chat_id INTEGER,\n                topic_id INTEGER,\n                user_name TEXT,\n                PRIMARY KEY (chat_id, topic_id)\n            )\n        ', [])
+2025-01-06 16:19:18,093 operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f782b27e2f0>, '\n            CREATE TABLE IF NOT EXISTS users (\n                chat_id INTEGER,\n                topic_id INTEGER,\n                user_name TEXT,\n                PRIMARY KEY (chat_id, topic_id)\n            )\n        ', []) completed
+2025-01-06 16:19:18,093 executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f782b27e2f0>, '\n            CREATE TABLE IF NOT EXISTS group_messages (\n                topic_id INTEGER,\n                message_id INTEGER,\n                local_id INTEGER,\n                PRIMARY KEY (topic_id, local_id)\n            )\n        ', [])
+2025-01-06 16:19:18,093 operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f782b27e2f0>, '\n            CREATE TABLE IF NOT EXISTS group_messages (\n                topic_id INTEGER,\n                message_id INTEGER,\n                local_id INTEGER,\n                PRIMARY KEY (topic_id, local_id)\n            )\n        ', []) completed
+2025-01-06 16:19:18,093 executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f782b27e2f0>, '\n            CREATE TABLE IF NOT EXISTS private_messages (\n                chat_id INTEGER,\n                message_id INTEGER,\n                local_id INTEGER,\n                PRIMARY KEY (chat_id, local_id)\n            )\n        ', [])
+2025-01-06 16:19:18,093 operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f782b27e2f0>, '\n            CREATE TABLE IF NOT EXISTS private_messages (\n                chat_id INTEGER,\n                message_id INTEGER,\n                local_id INTEGER,\n                PRIMARY KEY (chat_id, local_id)\n            )\n        ', []) completed
+2025-01-06 16:19:18,093 executing functools.partial(<built-in method commit of sqlite3.Connection object at 0x7f782b27e2f0>)
+2025-01-06 16:19:18,093 operation functools.partial(<built-in method commit of sqlite3.Connection object at 0x7f782b27e2f0>) completed
+2025-01-06 16:19:18,095 executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f782b27e2f0>, 'SELECT topic_id FROM users WHERE chat_id = ? AND user_name = ?', (5434361630, 'yadgenn'))
+2025-01-06 16:19:18,095 operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f782b27e2f0>, 'SELECT topic_id FROM users WHERE chat_id = ? AND user_name = ?', (5434361630, 'yadgenn')) completed
+2025-01-06 16:19:18,096 executing functools.partial(<built-in method fetchone of sqlite3.Cursor object at 0x7f782b2d8840>)
+2025-01-06 16:19:18,096 operation functools.partial(<built-in method fetchone of sqlite3.Cursor object at 0x7f782b2d8840>) completed
+2025-01-06 16:19:18,096 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x7f782b2d8840>)
+2025-01-06 16:19:18,096 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x7f782b2d8840>) completed
+2025-01-06 16:19:19,128 Looking for jobs to run
+2025-01-06 16:19:19,128 Next wakeup is due at 2025-01-06 16:19:24.127416+05:00 (in 4.998509 seconds)
+2025-01-06 16:19:19,129 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 16:19:24 +05)" (scheduled at 2025-01-06 16:19:19.127416+05:00)
+2025-01-06 16:19:19,129 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 16:19:24 +05)" executed successfully
+2025-01-06 16:19:20,121 executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f782b27e2f0>, 'SELECT topic_id FROM users WHERE chat_id = ?', (5434361630,))
+2025-01-06 16:19:20,121 operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f782b27e2f0>, 'SELECT topic_id FROM users WHERE chat_id = ?', (5434361630,)) completed
+2025-01-06 16:19:20,121 executing functools.partial(<built-in method fetchone of sqlite3.Cursor object at 0x7f782b2d8840>)
+2025-01-06 16:19:20,121 operation functools.partial(<built-in method fetchone of sqlite3.Cursor object at 0x7f782b2d8840>) completed
+2025-01-06 16:19:20,121 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x7f782b2d8840>)
+2025-01-06 16:19:20,121 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x7f782b2d8840>) completed
+2025-01-06 16:19:20,122 executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f782b27e2f0>, 'SELECT MAX(local_id) FROM group_messages WHERE topic_id = ?', (186,))
+2025-01-06 16:19:20,122 operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f782b27e2f0>, 'SELECT MAX(local_id) FROM group_messages WHERE topic_id = ?', (186,)) completed
+2025-01-06 16:19:20,122 executing functools.partial(<built-in method fetchone of sqlite3.Cursor object at 0x7f782b2d8840>)
+2025-01-06 16:19:20,122 operation functools.partial(<built-in method fetchone of sqlite3.Cursor object at 0x7f782b2d8840>) completed
+2025-01-06 16:19:20,122 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x7f782b2d8840>)
+2025-01-06 16:19:20,122 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x7f782b2d8840>) completed
+2025-01-06 16:19:20,122 executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f782b27e2f0>, '\n                    INSERT INTO group_messages (topic_id, message_id, local_id)\n                    VALUES (?, ?, ?)\n                ', (186, 1353, 362))
+2025-01-06 16:19:20,123 operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f782b27e2f0>, '\n                    INSERT INTO group_messages (topic_id, message_id, local_id)\n                    VALUES (?, ?, ?)\n                ', (186, 1353, 362)) completed
+2025-01-06 16:19:20,124 executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f782b27e2f0>, 'SELECT MAX(local_id) FROM private_messages WHERE chat_id = ?', (5434361630,))
+2025-01-06 16:19:20,124 operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f782b27e2f0>, 'SELECT MAX(local_id) FROM private_messages WHERE chat_id = ?', (5434361630,)) completed
+2025-01-06 16:19:20,124 executing functools.partial(<built-in method fetchone of sqlite3.Cursor object at 0x7f782b2d99c0>)
+2025-01-06 16:19:20,124 operation functools.partial(<built-in method fetchone of sqlite3.Cursor object at 0x7f782b2d99c0>) completed
+2025-01-06 16:19:20,124 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x7f782b2d99c0>)
+2025-01-06 16:19:20,124 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x7f782b2d99c0>) completed
+2025-01-06 16:19:20,124 executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f782b27e2f0>, '\n                    INSERT INTO private_messages (chat_id, message_id, local_id)\n                    VALUES (?, ?, ?)\n                ', (5434361630, 23204, 362))
+2025-01-06 16:19:20,125 operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f782b27e2f0>, '\n                    INSERT INTO private_messages (chat_id, message_id, local_id)\n                    VALUES (?, ?, ?)\n                ', (5434361630, 23204, 362)) completed
+2025-01-06 16:19:20,125 executing functools.partial(<built-in method commit of sqlite3.Connection object at 0x7f782b27e2f0>)
+2025-01-06 16:19:20,129 operation functools.partial(<built-in method commit of sqlite3.Connection object at 0x7f782b27e2f0>) completed
+2025-01-06 16:19:24,129 Looking for jobs to run
+2025-01-06 16:19:24,129 Next wakeup is due at 2025-01-06 16:19:29.127416+05:00 (in 4.997791 seconds)
+2025-01-06 16:19:24,129 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 16:19:29 +05)" (scheduled at 2025-01-06 16:19:24.127416+05:00)
+2025-01-06 16:19:24,130 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 16:19:29 +05)" executed successfully
+2025-01-06 16:19:26,276 executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f782b27e2f0>, 'SELECT topic_id FROM group_messages WHERE message_id = ?', (1353,))
+2025-01-06 16:19:26,278 operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f782b27e2f0>, 'SELECT topic_id FROM group_messages WHERE message_id = ?', (1353,)) completed
+2025-01-06 16:19:26,278 executing functools.partial(<built-in method fetchone of sqlite3.Cursor object at 0x7f782b2d9c40>)
+2025-01-06 16:19:26,278 operation functools.partial(<built-in method fetchone of sqlite3.Cursor object at 0x7f782b2d9c40>) completed
+2025-01-06 16:19:26,278 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x7f782b2d9c40>)
+2025-01-06 16:19:26,278 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x7f782b2d9c40>) completed
+2025-01-06 16:19:26,278 executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f782b27e2f0>, 'SELECT chat_id FROM users WHERE topic_id = ?', (186,))
+2025-01-06 16:19:26,279 operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f782b27e2f0>, 'SELECT chat_id FROM users WHERE topic_id = ?', (186,)) completed
+2025-01-06 16:19:26,279 executing functools.partial(<built-in method fetchone of sqlite3.Cursor object at 0x7f782b2d9c40>)
+2025-01-06 16:19:26,279 operation functools.partial(<built-in method fetchone of sqlite3.Cursor object at 0x7f782b2d9c40>) completed
+2025-01-06 16:19:26,279 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x7f782b2d9c40>)
+2025-01-06 16:19:26,279 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x7f782b2d9c40>) completed
+2025-01-06 16:19:26,280 executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f782b27e2f0>, 'SELECT topic_id FROM group_messages WHERE message_id = ?', (1353,))
+2025-01-06 16:19:26,280 operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f782b27e2f0>, 'SELECT topic_id FROM group_messages WHERE message_id = ?', (1353,)) completed
+2025-01-06 16:19:26,280 executing functools.partial(<built-in method fetchone of sqlite3.Cursor object at 0x7f782b2d9c40>)
+2025-01-06 16:19:26,280 operation functools.partial(<built-in method fetchone of sqlite3.Cursor object at 0x7f782b2d9c40>) completed
+2025-01-06 16:19:26,283 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x7f782b2d9c40>)
+2025-01-06 16:19:26,284 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x7f782b2d9c40>) completed
+2025-01-06 16:19:26,284 executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f782b27e2f0>, 'SELECT local_id FROM group_messages WHERE topic_id = ? AND message_id = ?', (186, 1353))
+2025-01-06 16:19:26,284 operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f782b27e2f0>, 'SELECT local_id FROM group_messages WHERE topic_id = ? AND message_id = ?', (186, 1353)) completed
+2025-01-06 16:19:26,284 executing functools.partial(<built-in method fetchone of sqlite3.Cursor object at 0x7f782b2d9c40>)
+2025-01-06 16:19:26,284 operation functools.partial(<built-in method fetchone of sqlite3.Cursor object at 0x7f782b2d9c40>) completed
+2025-01-06 16:19:26,285 executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f782b27e2f0>, 'SELECT topic_id FROM group_messages WHERE message_id = ?', (1353,))
+2025-01-06 16:19:26,285 operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f782b27e2f0>, 'SELECT topic_id FROM group_messages WHERE message_id = ?', (1353,)) completed
+2025-01-06 16:19:26,285 executing functools.partial(<built-in method fetchone of sqlite3.Cursor object at 0x7f782b2d9d40>)
+2025-01-06 16:19:26,285 operation functools.partial(<built-in method fetchone of sqlite3.Cursor object at 0x7f782b2d9d40>) completed
+2025-01-06 16:19:26,285 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x7f782b2d9d40>)
+2025-01-06 16:19:26,285 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x7f782b2d9d40>) completed
+2025-01-06 16:19:26,285 executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f782b27e2f0>, 'SELECT chat_id FROM users WHERE topic_id = ?', (186,))
+2025-01-06 16:19:26,285 operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f782b27e2f0>, 'SELECT chat_id FROM users WHERE topic_id = ?', (186,)) completed
+2025-01-06 16:19:26,286 executing functools.partial(<built-in method fetchone of sqlite3.Cursor object at 0x7f782b2d9d40>)
+2025-01-06 16:19:26,286 operation functools.partial(<built-in method fetchone of sqlite3.Cursor object at 0x7f782b2d9d40>) completed
+2025-01-06 16:19:26,286 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x7f782b2d9d40>)
+2025-01-06 16:19:26,286 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x7f782b2d9d40>) completed
+2025-01-06 16:19:26,286 executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f782b27e2f0>, 'SELECT message_id FROM private_messages WHERE chat_id = ? AND local_id = ?', (5434361630, 362))
+2025-01-06 16:19:26,286 operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f782b27e2f0>, 'SELECT message_id FROM private_messages WHERE chat_id = ? AND local_id = ?', (5434361630, 362)) completed
+2025-01-06 16:19:26,286 executing functools.partial(<built-in method fetchone of sqlite3.Cursor object at 0x7f782b2d9d40>)
+2025-01-06 16:19:26,286 operation functools.partial(<built-in method fetchone of sqlite3.Cursor object at 0x7f782b2d9d40>) completed
+2025-01-06 16:19:26,287 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x7f782b2d9d40>)
+2025-01-06 16:19:26,287 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x7f782b2d9d40>) completed
+2025-01-06 16:19:26,287 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x7f782b2d9c40>)
+2025-01-06 16:19:26,287 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x7f782b2d9c40>) completed
+2025-01-06 16:19:29,129 Looking for jobs to run
+2025-01-06 16:19:29,130 Next wakeup is due at 2025-01-06 16:19:34.127416+05:00 (in 4.997427 seconds)
+2025-01-06 16:19:29,130 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 16:19:34 +05)" (scheduled at 2025-01-06 16:19:29.127416+05:00)
+2025-01-06 16:19:29,130 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 16:19:34 +05)" executed successfully
+2025-01-06 16:19:30,784 executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f782b27e2f0>, 'SELECT topic_id FROM group_messages WHERE message_id = ?', (1354,))
+2025-01-06 16:19:30,784 operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f782b27e2f0>, 'SELECT topic_id FROM group_messages WHERE message_id = ?', (1354,)) completed
+2025-01-06 16:19:30,785 executing functools.partial(<built-in method fetchone of sqlite3.Cursor object at 0x7f782b2d9c40>)
+2025-01-06 16:19:30,785 operation functools.partial(<built-in method fetchone of sqlite3.Cursor object at 0x7f782b2d9c40>) completed
+2025-01-06 16:19:30,785 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x7f782b2d9c40>)
+2025-01-06 16:19:30,785 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x7f782b2d9c40>) completed
+2025-01-06 16:19:30,785 executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f782b27e2f0>, 'SELECT chat_id FROM users WHERE topic_id = ?', (None,))
+2025-01-06 16:19:30,785 operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f782b27e2f0>, 'SELECT chat_id FROM users WHERE topic_id = ?', (None,)) completed
+2025-01-06 16:19:30,785 executing functools.partial(<built-in method fetchone of sqlite3.Cursor object at 0x7f782b2d9c40>)
+2025-01-06 16:19:30,786 operation functools.partial(<built-in method fetchone of sqlite3.Cursor object at 0x7f782b2d9c40>) completed
+2025-01-06 16:19:30,786 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x7f782b2d9c40>)
+2025-01-06 16:19:30,786 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x7f782b2d9c40>) completed
+2025-01-06 16:19:34,128 Looking for jobs to run
+2025-01-06 16:19:34,129 Next wakeup is due at 2025-01-06 16:19:39.127416+05:00 (in 4.998343 seconds)
+2025-01-06 16:19:34,129 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 16:19:39 +05)" (scheduled at 2025-01-06 16:19:34.127416+05:00)
+2025-01-06 16:19:34,129 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 16:19:39 +05)" executed successfully
+2025-01-06 16:19:39,132 Looking for jobs to run
+2025-01-06 16:19:39,133 Next wakeup is due at 2025-01-06 16:19:44.127416+05:00 (in 4.994104 seconds)
+2025-01-06 16:19:39,133 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 16:19:44 +05)" (scheduled at 2025-01-06 16:19:39.127416+05:00)
+2025-01-06 16:19:39,133 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 16:19:44 +05)" executed successfully
+2025-01-06 16:19:44,132 Looking for jobs to run
+2025-01-06 16:19:44,134 Next wakeup is due at 2025-01-06 16:19:49.127416+05:00 (in 4.992971 seconds)
+2025-01-06 16:19:44,134 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 16:19:49 +05)" (scheduled at 2025-01-06 16:19:44.127416+05:00)
+2025-01-06 16:19:44,134 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 16:19:49 +05)" executed successfully
+2025-01-06 16:19:49,129 Looking for jobs to run
+2025-01-06 16:19:49,129 Next wakeup is due at 2025-01-06 16:19:54.127416+05:00 (in 4.997866 seconds)
+2025-01-06 16:19:49,129 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 16:19:54 +05)" (scheduled at 2025-01-06 16:19:49.127416+05:00)
+2025-01-06 16:19:49,130 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 16:19:54 +05)" executed successfully
+2025-01-06 16:19:54,131 Looking for jobs to run
+2025-01-06 16:19:54,131 Next wakeup is due at 2025-01-06 16:19:59.127416+05:00 (in 4.995646 seconds)
+2025-01-06 16:19:54,131 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 16:19:59 +05)" (scheduled at 2025-01-06 16:19:54.127416+05:00)
+2025-01-06 16:19:54,132 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 16:19:59 +05)" executed successfully
+2025-01-06 16:19:59,132 Looking for jobs to run
+2025-01-06 16:19:59,133 Next wakeup is due at 2025-01-06 16:20:04.127416+05:00 (in 4.994193 seconds)
+2025-01-06 16:19:59,133 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 16:20:04 +05)" (scheduled at 2025-01-06 16:19:59.127416+05:00)
+2025-01-06 16:19:59,133 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 16:20:04 +05)" executed successfully
+2025-01-06 16:20:04,132 Looking for jobs to run
+2025-01-06 16:20:04,133 Next wakeup is due at 2025-01-06 16:20:09.127416+05:00 (in 4.994052 seconds)
+2025-01-06 16:20:04,133 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 16:20:09 +05)" (scheduled at 2025-01-06 16:20:04.127416+05:00)
+2025-01-06 16:20:04,133 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 16:20:09 +05)" executed successfully
+2025-01-06 16:20:09,130 Looking for jobs to run
+2025-01-06 16:20:09,131 Next wakeup is due at 2025-01-06 16:20:14.127416+05:00 (in 4.996066 seconds)
+2025-01-06 16:20:09,131 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 16:20:14 +05)" (scheduled at 2025-01-06 16:20:09.127416+05:00)
+2025-01-06 16:20:09,131 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 16:20:14 +05)" executed successfully
+2025-01-06 16:20:14,131 Looking for jobs to run
+2025-01-06 16:20:14,132 Next wakeup is due at 2025-01-06 16:20:19.127416+05:00 (in 4.994856 seconds)
+2025-01-06 16:20:14,133 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 16:20:19 +05)" (scheduled at 2025-01-06 16:20:14.127416+05:00)
+2025-01-06 16:20:14,133 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 16:20:19 +05)" executed successfully
+2025-01-06 16:20:16,010 Infinity polling: polling exited
+2025-01-06 16:20:16,010 Break infinity polling

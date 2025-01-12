@@ -1,0 +1,4 @@
+2025-01-10 20:47:13,398 ERROR Aiohttp ClientError: ServerDisconnectedError
+2025-01-10 20:47:13,398 ERROR Unhandled exception (full traceback for debug level): Request timeout. Request: method=get url=getUpdates params=<aiohttp.formdata.FormData object at 0x7f18bc2cf850> files=None request_timeout=300
+2025-01-10 20:47:33,306 ERROR Infinity polling: polling exited
+2025-01-10 20:47:33,307 ERROR Break infinity polling

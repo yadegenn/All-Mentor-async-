@@ -1,0 +1,117 @@
+2025-01-06 19:32:38,864 Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-01-06 19:32:38,866 Added job "checker" to job store "default"
+2025-01-06 19:32:38,866 Scheduler started
+2025-01-06 19:32:38,871 Looking for jobs to run
+2025-01-06 19:32:38,871 Next wakeup is due at 2025-01-06 19:32:43.864825+05:00 (in 4.993243 seconds)
+2025-01-06 19:32:43,869 Looking for jobs to run
+2025-01-06 19:32:43,870 Next wakeup is due at 2025-01-06 19:32:48.864825+05:00 (in 4.994639 seconds)
+2025-01-06 19:32:43,870 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 19:32:48 +05)" (scheduled at 2025-01-06 19:32:43.864825+05:00)
+2025-01-06 19:32:43,870 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 19:32:48 +05)" executed successfully
+2025-01-06 19:32:48,869 Looking for jobs to run
+2025-01-06 19:32:48,869 Next wakeup is due at 2025-01-06 19:32:53.864825+05:00 (in 4.995089 seconds)
+2025-01-06 19:32:48,869 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 19:32:53 +05)" (scheduled at 2025-01-06 19:32:48.864825+05:00)
+2025-01-06 19:32:48,870 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 19:32:53 +05)" executed successfully
+2025-01-06 19:32:51,480 executing <function connect.<locals>.connector at 0x7f84986c07c0>
+2025-01-06 19:32:51,485 operation <function connect.<locals>.connector at 0x7f84986c07c0> completed
+2025-01-06 19:32:51,485 executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f849889de40>, 'PRAGMA foreign_keys = ON', [])
+2025-01-06 19:32:51,488 operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f849889de40>, 'PRAGMA foreign_keys = ON', []) completed
+2025-01-06 19:32:51,488 executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f849889de40>, '\n                    CREATE TABLE IF NOT EXISTS users (\n                        chat_id INTEGER,\n                        topic_id INTEGER,\n                        user_name TEXT,\n                        PRIMARY KEY (chat_id, topic_id)\n                    )\n                ', [])
+2025-01-06 19:32:51,501 operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f849889de40>, '\n                    CREATE TABLE IF NOT EXISTS users (\n                        chat_id INTEGER,\n                        topic_id INTEGER,\n                        user_name TEXT,\n                        PRIMARY KEY (chat_id, topic_id)\n                    )\n                ', []) completed
+2025-01-06 19:32:51,502 executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f849889de40>, '\n                    CREATE TABLE IF NOT EXISTS group_messages (\n                        topic_id INTEGER,\n                        message_id INTEGER,\n                        local_id INTEGER,\n                        PRIMARY KEY (topic_id, local_id)\n                    )\n                ', [])
+2025-01-06 19:32:51,508 operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f849889de40>, '\n                    CREATE TABLE IF NOT EXISTS group_messages (\n                        topic_id INTEGER,\n                        message_id INTEGER,\n                        local_id INTEGER,\n                        PRIMARY KEY (topic_id, local_id)\n                    )\n                ', []) completed
+2025-01-06 19:32:51,509 executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f849889de40>, '\n                    CREATE TABLE IF NOT EXISTS private_messages (\n                        chat_id INTEGER,\n                        message_id INTEGER,\n                        local_id INTEGER,\n                        PRIMARY KEY (chat_id, local_id)\n                    )\n                ', [])
+2025-01-06 19:32:51,513 operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f849889de40>, '\n                    CREATE TABLE IF NOT EXISTS private_messages (\n                        chat_id INTEGER,\n                        message_id INTEGER,\n                        local_id INTEGER,\n                        PRIMARY KEY (chat_id, local_id)\n                    )\n                ', []) completed
+2025-01-06 19:32:51,514 executing functools.partial(<built-in method commit of sqlite3.Connection object at 0x7f849889de40>)
+2025-01-06 19:32:51,514 operation functools.partial(<built-in method commit of sqlite3.Connection object at 0x7f849889de40>) completed
+2025-01-06 19:32:51,514 executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f849889de40>, 'SELECT topic_id FROM users WHERE chat_id = ?', (5434361630,))
+2025-01-06 19:32:51,514 operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f849889de40>, 'SELECT topic_id FROM users WHERE chat_id = ?', (5434361630,)) completed
+2025-01-06 19:32:51,514 executing functools.partial(<built-in method fetchone of sqlite3.Cursor object at 0x7f84986615c0>)
+2025-01-06 19:32:51,514 operation functools.partial(<built-in method fetchone of sqlite3.Cursor object at 0x7f84986615c0>) completed
+2025-01-06 19:32:51,515 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x7f84986615c0>)
+2025-01-06 19:32:51,515 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x7f84986615c0>) completed
+2025-01-06 19:32:51,515 executing <function connect.<locals>.connector at 0x7f84986c20c0>
+2025-01-06 19:32:51,515 operation <function connect.<locals>.connector at 0x7f84986c20c0> completed
+2025-01-06 19:32:51,516 executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f849889e020>, 'PRAGMA foreign_keys = ON', [])
+2025-01-06 19:32:51,516 operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f849889e020>, 'PRAGMA foreign_keys = ON', []) completed
+2025-01-06 19:32:51,516 executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f849889e020>, '\n            CREATE TABLE IF NOT EXISTS users (\n                chat_id INTEGER,\n                topic_id INTEGER,\n                user_name TEXT,\n                PRIMARY KEY (chat_id, topic_id)\n            )\n        ', [])
+2025-01-06 19:32:51,516 operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f849889e020>, '\n            CREATE TABLE IF NOT EXISTS users (\n                chat_id INTEGER,\n                topic_id INTEGER,\n                user_name TEXT,\n                PRIMARY KEY (chat_id, topic_id)\n            )\n        ', []) completed
+2025-01-06 19:32:51,516 executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f849889e020>, '\n            CREATE TABLE IF NOT EXISTS group_messages (\n                topic_id INTEGER,\n                message_id INTEGER,\n                local_id INTEGER,\n                PRIMARY KEY (topic_id, local_id)\n            )\n        ', [])
+2025-01-06 19:32:51,516 operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f849889e020>, '\n            CREATE TABLE IF NOT EXISTS group_messages (\n                topic_id INTEGER,\n                message_id INTEGER,\n                local_id INTEGER,\n                PRIMARY KEY (topic_id, local_id)\n            )\n        ', []) completed
+2025-01-06 19:32:51,516 executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f849889e020>, '\n            CREATE TABLE IF NOT EXISTS private_messages (\n                chat_id INTEGER,\n                message_id INTEGER,\n                local_id INTEGER,\n                PRIMARY KEY (chat_id, local_id)\n            )\n        ', [])
+2025-01-06 19:32:51,517 operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f849889e020>, '\n            CREATE TABLE IF NOT EXISTS private_messages (\n                chat_id INTEGER,\n                message_id INTEGER,\n                local_id INTEGER,\n                PRIMARY KEY (chat_id, local_id)\n            )\n        ', []) completed
+2025-01-06 19:32:51,517 executing functools.partial(<built-in method commit of sqlite3.Connection object at 0x7f849889e020>)
+2025-01-06 19:32:51,517 operation functools.partial(<built-in method commit of sqlite3.Connection object at 0x7f849889e020>) completed
+2025-01-06 19:32:51,517 executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f849889e020>, 'SELECT topic_id FROM users WHERE chat_id = ? AND user_name = ?', (5434361630, 'yadgenn'))
+2025-01-06 19:32:51,517 operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f849889e020>, 'SELECT topic_id FROM users WHERE chat_id = ? AND user_name = ?', (5434361630, 'yadgenn')) completed
+2025-01-06 19:32:51,517 executing functools.partial(<built-in method fetchone of sqlite3.Cursor object at 0x7f8498a64340>)
+2025-01-06 19:32:51,518 operation functools.partial(<built-in method fetchone of sqlite3.Cursor object at 0x7f8498a64340>) completed
+2025-01-06 19:32:52,093 executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f849889e020>, '\n            INSERT OR REPLACE INTO users (chat_id, topic_id, user_name)\n            VALUES (?, ?, ?)\n        ', (5434361630, 1434, 'yadgenn'))
+2025-01-06 19:32:52,094 operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f849889e020>, '\n            INSERT OR REPLACE INTO users (chat_id, topic_id, user_name)\n            VALUES (?, ?, ?)\n        ', (5434361630, 1434, 'yadgenn')) completed
+2025-01-06 19:32:52,094 executing functools.partial(<built-in method commit of sqlite3.Connection object at 0x7f849889e020>)
+2025-01-06 19:32:52,099 operation functools.partial(<built-in method commit of sqlite3.Connection object at 0x7f849889e020>) completed
+2025-01-06 19:32:52,099 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x7f8498a64340>)
+2025-01-06 19:32:52,099 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x7f8498a64340>) completed
+2025-01-06 19:32:52,099 executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f849889e020>, 'SELECT chat_id, topic_id, user_name FROM users', [])
+2025-01-06 19:32:52,099 operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f849889e020>, 'SELECT chat_id, topic_id, user_name FROM users', []) completed
+2025-01-06 19:32:52,100 executing functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x7f8498a64340>)
+2025-01-06 19:32:52,100 operation functools.partial(<built-in method fetchall of sqlite3.Cursor object at 0x7f8498a64340>) completed
+2025-01-06 19:32:52,100 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x7f8498a64340>)
+2025-01-06 19:32:52,100 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x7f8498a64340>) completed
+2025-01-06 19:32:53,866 Looking for jobs to run
+2025-01-06 19:32:53,866 Next wakeup is due at 2025-01-06 19:32:58.864825+05:00 (in 4.998305 seconds)
+2025-01-06 19:32:53,866 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 19:32:58 +05)" (scheduled at 2025-01-06 19:32:53.864825+05:00)
+2025-01-06 19:32:53,866 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 19:32:58 +05)" executed successfully
+2025-01-06 19:32:55,177 executing <function connect.<locals>.connector at 0x7f84986c25c0>
+2025-01-06 19:32:55,178 operation <function connect.<locals>.connector at 0x7f84986c25c0> completed
+2025-01-06 19:32:55,181 executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f849889e4d0>, 'PRAGMA foreign_keys = ON', [])
+2025-01-06 19:32:55,181 operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f849889e4d0>, 'PRAGMA foreign_keys = ON', []) completed
+2025-01-06 19:32:55,181 executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f849889e4d0>, '\n                    CREATE TABLE IF NOT EXISTS users (\n                        chat_id INTEGER,\n                        topic_id INTEGER,\n                        user_name TEXT,\n                        PRIMARY KEY (chat_id, topic_id)\n                    )\n                ', [])
+2025-01-06 19:32:55,182 operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f849889e4d0>, '\n                    CREATE TABLE IF NOT EXISTS users (\n                        chat_id INTEGER,\n                        topic_id INTEGER,\n                        user_name TEXT,\n                        PRIMARY KEY (chat_id, topic_id)\n                    )\n                ', []) completed
+2025-01-06 19:32:55,182 executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f849889e4d0>, '\n                    CREATE TABLE IF NOT EXISTS group_messages (\n                        topic_id INTEGER,\n                        message_id INTEGER,\n                        local_id INTEGER,\n                        PRIMARY KEY (topic_id, local_id)\n                    )\n                ', [])
+2025-01-06 19:32:55,183 operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f849889e4d0>, '\n                    CREATE TABLE IF NOT EXISTS group_messages (\n                        topic_id INTEGER,\n                        message_id INTEGER,\n                        local_id INTEGER,\n                        PRIMARY KEY (topic_id, local_id)\n                    )\n                ', []) completed
+2025-01-06 19:32:55,187 executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f849889e4d0>, '\n                    CREATE TABLE IF NOT EXISTS private_messages (\n                        chat_id INTEGER,\n                        message_id INTEGER,\n                        local_id INTEGER,\n                        PRIMARY KEY (chat_id, local_id)\n                    )\n                ', [])
+2025-01-06 19:32:55,188 operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f849889e4d0>, '\n                    CREATE TABLE IF NOT EXISTS private_messages (\n                        chat_id INTEGER,\n                        message_id INTEGER,\n                        local_id INTEGER,\n                        PRIMARY KEY (chat_id, local_id)\n                    )\n                ', []) completed
+2025-01-06 19:32:55,189 executing functools.partial(<built-in method commit of sqlite3.Connection object at 0x7f849889e4d0>)
+2025-01-06 19:32:55,189 operation functools.partial(<built-in method commit of sqlite3.Connection object at 0x7f849889e4d0>) completed
+2025-01-06 19:32:55,189 executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f849889e4d0>, 'SELECT topic_id FROM users WHERE chat_id = ?', (5434361630,))
+2025-01-06 19:32:55,189 operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f849889e4d0>, 'SELECT topic_id FROM users WHERE chat_id = ?', (5434361630,)) completed
+2025-01-06 19:32:55,192 executing functools.partial(<built-in method fetchone of sqlite3.Cursor object at 0x7f84986561c0>)
+2025-01-06 19:32:55,192 operation functools.partial(<built-in method fetchone of sqlite3.Cursor object at 0x7f84986561c0>) completed
+2025-01-06 19:32:55,193 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x7f84986561c0>)
+2025-01-06 19:32:55,193 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x7f84986561c0>) completed
+2025-01-06 19:32:55,194 executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f849889e020>, 'SELECT topic_id FROM users WHERE chat_id = ? AND user_name = ?', (5434361630, 'yadgenn'))
+2025-01-06 19:32:55,195 operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f849889e020>, 'SELECT topic_id FROM users WHERE chat_id = ? AND user_name = ?', (5434361630, 'yadgenn')) completed
+2025-01-06 19:32:55,196 executing functools.partial(<built-in method fetchone of sqlite3.Cursor object at 0x7f8498a64340>)
+2025-01-06 19:32:55,196 operation functools.partial(<built-in method fetchone of sqlite3.Cursor object at 0x7f8498a64340>) completed
+2025-01-06 19:32:55,197 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x7f8498a64340>)
+2025-01-06 19:32:55,197 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x7f8498a64340>) completed
+2025-01-06 19:32:55,398 executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f849889e020>, 'SELECT topic_id FROM users WHERE chat_id = ?', (5434361630,))
+2025-01-06 19:32:55,398 operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f849889e020>, 'SELECT topic_id FROM users WHERE chat_id = ?', (5434361630,)) completed
+2025-01-06 19:32:55,406 executing functools.partial(<built-in method fetchone of sqlite3.Cursor object at 0x7f8498a64340>)
+2025-01-06 19:32:55,406 operation functools.partial(<built-in method fetchone of sqlite3.Cursor object at 0x7f8498a64340>) completed
+2025-01-06 19:32:55,419 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x7f8498a64340>)
+2025-01-06 19:32:55,419 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x7f8498a64340>) completed
+2025-01-06 19:32:55,420 executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f849889e020>, 'SELECT MAX(local_id) FROM group_messages WHERE topic_id = ?', (1434,))
+2025-01-06 19:32:55,420 operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f849889e020>, 'SELECT MAX(local_id) FROM group_messages WHERE topic_id = ?', (1434,)) completed
+2025-01-06 19:32:55,420 executing functools.partial(<built-in method fetchone of sqlite3.Cursor object at 0x7f8498a64340>)
+2025-01-06 19:32:55,420 operation functools.partial(<built-in method fetchone of sqlite3.Cursor object at 0x7f8498a64340>) completed
+2025-01-06 19:32:55,420 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x7f8498a64340>)
+2025-01-06 19:32:55,420 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x7f8498a64340>) completed
+2025-01-06 19:32:55,420 executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f849889e020>, '\n                    INSERT INTO group_messages (topic_id, message_id, local_id)\n                    VALUES (?, ?, ?)\n                ', (1434, 1435, 1))
+2025-01-06 19:32:55,421 operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f849889e020>, '\n                    INSERT INTO group_messages (topic_id, message_id, local_id)\n                    VALUES (?, ?, ?)\n                ', (1434, 1435, 1)) completed
+2025-01-06 19:32:55,421 executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f849889e020>, 'SELECT MAX(local_id) FROM private_messages WHERE chat_id = ?', (5434361630,))
+2025-01-06 19:32:55,442 operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f849889e020>, 'SELECT MAX(local_id) FROM private_messages WHERE chat_id = ?', (5434361630,)) completed
+2025-01-06 19:32:55,442 executing functools.partial(<built-in method fetchone of sqlite3.Cursor object at 0x7f849864a640>)
+2025-01-06 19:32:55,442 operation functools.partial(<built-in method fetchone of sqlite3.Cursor object at 0x7f849864a640>) completed
+2025-01-06 19:32:55,443 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x7f849864a640>)
+2025-01-06 19:32:55,443 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x7f849864a640>) completed
+2025-01-06 19:32:55,443 executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f849889e020>, '\n                    INSERT INTO private_messages (chat_id, message_id, local_id)\n                    VALUES (?, ?, ?)\n                ', (5434361630, 23336, 1))
+2025-01-06 19:32:55,443 operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x7f849889e020>, '\n                    INSERT INTO private_messages (chat_id, message_id, local_id)\n                    VALUES (?, ?, ?)\n                ', (5434361630, 23336, 1)) completed
+2025-01-06 19:32:55,443 executing functools.partial(<built-in method commit of sqlite3.Connection object at 0x7f849889e020>)
+2025-01-06 19:32:55,455 operation functools.partial(<built-in method commit of sqlite3.Connection object at 0x7f849889e020>) completed
+2025-01-06 19:32:58,869 Looking for jobs to run
+2025-01-06 19:32:58,870 Next wakeup is due at 2025-01-06 19:33:03.864825+05:00 (in 4.994180 seconds)
+2025-01-06 19:32:58,870 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 19:33:03 +05)" (scheduled at 2025-01-06 19:32:58.864825+05:00)
+2025-01-06 19:32:58,871 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 19:33:03 +05)" executed successfully
+2025-01-06 19:33:00,553 Infinity polling: polling exited
+2025-01-06 19:33:00,554 Break infinity polling

@@ -1,0 +1,3 @@
+2025-01-06 20:43:14,006 ERROR Unhandled exception (full traceback for debug level): A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+2025-01-06 20:43:33,605 ERROR Infinity polling: polling exited
+2025-01-06 20:43:33,607 ERROR Break infinity polling

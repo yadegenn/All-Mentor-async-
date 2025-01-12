@@ -1,0 +1,125 @@
+2025-01-06 14:53:44,862 Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-01-06 14:53:44,865 Added job "checker" to job store "default"
+2025-01-06 14:53:44,866 Scheduler started
+2025-01-06 14:53:44,875 Looking for jobs to run
+2025-01-06 14:53:44,875 Next wakeup is due at 2025-01-06 14:53:49.862001+05:00 (in 4.986176 seconds)
+2025-01-06 14:53:46,942 executing <function connect.<locals>.connector at 0x7fe4bbfda160>
+2025-01-06 14:53:46,949 operation <function connect.<locals>.connector at 0x7fe4bbfda160> completed
+2025-01-06 14:53:46,949 executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x7fe4bbf8dd50>, 'SELECT topic_id FROM users WHERE chat_id = ?', (5434361630,))
+2025-01-06 14:53:46,955 operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x7fe4bbf8dd50>, 'SELECT topic_id FROM users WHERE chat_id = ?', (5434361630,)) completed
+2025-01-06 14:53:46,955 executing functools.partial(<built-in method fetchone of sqlite3.Cursor object at 0x7fe4bbfec040>)
+2025-01-06 14:53:46,955 operation functools.partial(<built-in method fetchone of sqlite3.Cursor object at 0x7fe4bbfec040>) completed
+2025-01-06 14:53:46,955 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x7fe4bbfec040>)
+2025-01-06 14:53:46,956 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x7fe4bbfec040>) completed
+2025-01-06 14:53:46,985 executing <function connect.<locals>.connector at 0x7fe4bbfdb600>
+2025-01-06 14:53:46,986 operation <function connect.<locals>.connector at 0x7fe4bbfdb600> completed
+2025-01-06 14:53:46,986 executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x7fe4bbf8e200>, 'PRAGMA foreign_keys = ON', [])
+2025-01-06 14:53:46,986 operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x7fe4bbf8e200>, 'PRAGMA foreign_keys = ON', []) completed
+2025-01-06 14:53:46,986 executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x7fe4bbf8e200>, '\n            CREATE TABLE IF NOT EXISTS users (\n                chat_id INTEGER,\n                topic_id INTEGER,\n                user_name TEXT,\n                PRIMARY KEY (chat_id, topic_id)\n            )\n        ', [])
+2025-01-06 14:53:46,986 operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x7fe4bbf8e200>, '\n            CREATE TABLE IF NOT EXISTS users (\n                chat_id INTEGER,\n                topic_id INTEGER,\n                user_name TEXT,\n                PRIMARY KEY (chat_id, topic_id)\n            )\n        ', []) completed
+2025-01-06 14:53:46,987 executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x7fe4bbf8e200>, '\n            CREATE TABLE IF NOT EXISTS group_messages (\n                topic_id INTEGER,\n                message_id INTEGER,\n                local_id INTEGER,\n                PRIMARY KEY (topic_id, local_id)\n            )\n        ', [])
+2025-01-06 14:53:46,987 operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x7fe4bbf8e200>, '\n            CREATE TABLE IF NOT EXISTS group_messages (\n                topic_id INTEGER,\n                message_id INTEGER,\n                local_id INTEGER,\n                PRIMARY KEY (topic_id, local_id)\n            )\n        ', []) completed
+2025-01-06 14:53:46,987 executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x7fe4bbf8e200>, '\n            CREATE TABLE IF NOT EXISTS private_messages (\n                chat_id INTEGER,\n                message_id INTEGER,\n                local_id INTEGER,\n                PRIMARY KEY (chat_id, local_id)\n            )\n        ', [])
+2025-01-06 14:53:46,988 operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x7fe4bbf8e200>, '\n            CREATE TABLE IF NOT EXISTS private_messages (\n                chat_id INTEGER,\n                message_id INTEGER,\n                local_id INTEGER,\n                PRIMARY KEY (chat_id, local_id)\n            )\n        ', []) completed
+2025-01-06 14:53:46,989 executing functools.partial(<built-in method commit of sqlite3.Connection object at 0x7fe4bbf8e200>)
+2025-01-06 14:53:46,989 operation functools.partial(<built-in method commit of sqlite3.Connection object at 0x7fe4bbf8e200>) completed
+2025-01-06 14:53:46,990 executing functools.partial(<built-in method execute of sqlite3.Connection object at 0x7fe4bbf8e200>, 'SELECT topic_id FROM users WHERE chat_id = ? AND user_name = ?', (5434361630, 'yadgenn'))
+2025-01-06 14:53:46,990 operation functools.partial(<built-in method execute of sqlite3.Connection object at 0x7fe4bbf8e200>, 'SELECT topic_id FROM users WHERE chat_id = ? AND user_name = ?', (5434361630, 'yadgenn')) completed
+2025-01-06 14:53:46,991 executing functools.partial(<built-in method fetchone of sqlite3.Cursor object at 0x7fe4bbfec840>)
+2025-01-06 14:53:46,991 operation functools.partial(<built-in method fetchone of sqlite3.Cursor object at 0x7fe4bbfec840>) completed
+2025-01-06 14:53:46,993 executing functools.partial(<built-in method close of sqlite3.Cursor object at 0x7fe4bbfec840>)
+2025-01-06 14:53:46,993 operation functools.partial(<built-in method close of sqlite3.Cursor object at 0x7fe4bbfec840>) completed
+2025-01-06 14:53:49,864 Looking for jobs to run
+2025-01-06 14:53:49,864 Next wakeup is due at 2025-01-06 14:53:54.862001+05:00 (in 4.997218 seconds)
+2025-01-06 14:53:49,864 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 14:53:54 +05)" (scheduled at 2025-01-06 14:53:49.862001+05:00)
+2025-01-06 14:53:49,865 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 14:53:54 +05)" executed successfully
+2025-01-06 14:53:54,866 Looking for jobs to run
+2025-01-06 14:53:54,866 Next wakeup is due at 2025-01-06 14:53:59.862001+05:00 (in 4.995194 seconds)
+2025-01-06 14:53:54,867 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 14:53:59 +05)" (scheduled at 2025-01-06 14:53:54.862001+05:00)
+2025-01-06 14:53:54,867 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 14:53:59 +05)" executed successfully
+2025-01-06 14:53:59,865 Looking for jobs to run
+2025-01-06 14:53:59,866 Next wakeup is due at 2025-01-06 14:54:04.862001+05:00 (in 4.995851 seconds)
+2025-01-06 14:53:59,866 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 14:54:04 +05)" (scheduled at 2025-01-06 14:53:59.862001+05:00)
+2025-01-06 14:53:59,866 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 14:54:04 +05)" executed successfully
+2025-01-06 14:54:04,865 Looking for jobs to run
+2025-01-06 14:54:04,866 Next wakeup is due at 2025-01-06 14:54:09.862001+05:00 (in 4.995882 seconds)
+2025-01-06 14:54:04,866 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 14:54:09 +05)" (scheduled at 2025-01-06 14:54:04.862001+05:00)
+2025-01-06 14:54:04,866 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 14:54:09 +05)" executed successfully
+2025-01-06 14:54:09,869 Looking for jobs to run
+2025-01-06 14:54:09,870 Next wakeup is due at 2025-01-06 14:54:14.862001+05:00 (in 4.991543 seconds)
+2025-01-06 14:54:09,870 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 14:54:14 +05)" (scheduled at 2025-01-06 14:54:09.862001+05:00)
+2025-01-06 14:54:09,870 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 14:54:14 +05)" executed successfully
+2025-01-06 14:54:14,867 Looking for jobs to run
+2025-01-06 14:54:14,868 Next wakeup is due at 2025-01-06 14:54:19.862001+05:00 (in 4.993777 seconds)
+2025-01-06 14:54:14,868 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 14:54:19 +05)" (scheduled at 2025-01-06 14:54:14.862001+05:00)
+2025-01-06 14:54:14,868 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 14:54:19 +05)" executed successfully
+2025-01-06 14:54:19,864 Looking for jobs to run
+2025-01-06 14:54:19,865 Next wakeup is due at 2025-01-06 14:54:24.862001+05:00 (in 4.996676 seconds)
+2025-01-06 14:54:19,865 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 14:54:24 +05)" (scheduled at 2025-01-06 14:54:19.862001+05:00)
+2025-01-06 14:54:19,865 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 14:54:24 +05)" executed successfully
+2025-01-06 14:54:24,865 Looking for jobs to run
+2025-01-06 14:54:24,866 Next wakeup is due at 2025-01-06 14:54:29.862001+05:00 (in 4.995681 seconds)
+2025-01-06 14:54:24,866 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 14:54:29 +05)" (scheduled at 2025-01-06 14:54:24.862001+05:00)
+2025-01-06 14:54:24,866 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 14:54:29 +05)" executed successfully
+2025-01-06 14:54:29,865 Looking for jobs to run
+2025-01-06 14:54:29,866 Next wakeup is due at 2025-01-06 14:54:34.862001+05:00 (in 4.995730 seconds)
+2025-01-06 14:54:29,866 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 14:54:34 +05)" (scheduled at 2025-01-06 14:54:29.862001+05:00)
+2025-01-06 14:54:29,866 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 14:54:34 +05)" executed successfully
+2025-01-06 14:54:34,868 Looking for jobs to run
+2025-01-06 14:54:34,868 Next wakeup is due at 2025-01-06 14:54:39.862001+05:00 (in 4.993413 seconds)
+2025-01-06 14:54:34,869 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 14:54:39 +05)" (scheduled at 2025-01-06 14:54:34.862001+05:00)
+2025-01-06 14:54:34,869 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 14:54:39 +05)" executed successfully
+2025-01-06 14:54:39,865 Looking for jobs to run
+2025-01-06 14:54:39,866 Next wakeup is due at 2025-01-06 14:54:44.862001+05:00 (in 4.995721 seconds)
+2025-01-06 14:54:39,866 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 14:54:44 +05)" (scheduled at 2025-01-06 14:54:39.862001+05:00)
+2025-01-06 14:54:39,866 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 14:54:44 +05)" executed successfully
+2025-01-06 14:54:44,868 Looking for jobs to run
+2025-01-06 14:54:44,868 Next wakeup is due at 2025-01-06 14:54:49.862001+05:00 (in 4.993182 seconds)
+2025-01-06 14:54:44,869 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 14:54:49 +05)" (scheduled at 2025-01-06 14:54:44.862001+05:00)
+2025-01-06 14:54:44,869 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 14:54:49 +05)" executed successfully
+2025-01-06 14:54:49,863 Looking for jobs to run
+2025-01-06 14:54:49,863 Next wakeup is due at 2025-01-06 14:54:54.862001+05:00 (in 4.998154 seconds)
+2025-01-06 14:54:49,864 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 14:54:54 +05)" (scheduled at 2025-01-06 14:54:49.862001+05:00)
+2025-01-06 14:54:49,864 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 14:54:54 +05)" executed successfully
+2025-01-06 14:54:54,866 Looking for jobs to run
+2025-01-06 14:54:54,866 Next wakeup is due at 2025-01-06 14:54:59.862001+05:00 (in 4.995376 seconds)
+2025-01-06 14:54:54,866 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 14:54:59 +05)" (scheduled at 2025-01-06 14:54:54.862001+05:00)
+2025-01-06 14:54:54,867 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 14:54:59 +05)" executed successfully
+2025-01-06 14:54:59,865 Looking for jobs to run
+2025-01-06 14:54:59,866 Next wakeup is due at 2025-01-06 14:55:04.862001+05:00 (in 4.995735 seconds)
+2025-01-06 14:54:59,866 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 14:55:04 +05)" (scheduled at 2025-01-06 14:54:59.862001+05:00)
+2025-01-06 14:54:59,866 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 14:55:04 +05)" executed successfully
+2025-01-06 14:55:04,867 Looking for jobs to run
+2025-01-06 14:55:04,867 Next wakeup is due at 2025-01-06 14:55:09.862001+05:00 (in 4.994225 seconds)
+2025-01-06 14:55:04,868 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 14:55:09 +05)" (scheduled at 2025-01-06 14:55:04.862001+05:00)
+2025-01-06 14:55:04,868 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 14:55:09 +05)" executed successfully
+2025-01-06 14:55:09,865 Looking for jobs to run
+2025-01-06 14:55:09,866 Next wakeup is due at 2025-01-06 14:55:14.862001+05:00 (in 4.995964 seconds)
+2025-01-06 14:55:09,866 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 14:55:14 +05)" (scheduled at 2025-01-06 14:55:09.862001+05:00)
+2025-01-06 14:55:09,866 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 14:55:14 +05)" executed successfully
+2025-01-06 14:55:14,865 Looking for jobs to run
+2025-01-06 14:55:14,866 Next wakeup is due at 2025-01-06 14:55:19.862001+05:00 (in 4.995942 seconds)
+2025-01-06 14:55:14,866 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 14:55:19 +05)" (scheduled at 2025-01-06 14:55:14.862001+05:00)
+2025-01-06 14:55:14,866 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 14:55:19 +05)" executed successfully
+2025-01-06 14:55:19,865 Looking for jobs to run
+2025-01-06 14:55:19,866 Next wakeup is due at 2025-01-06 14:55:24.862001+05:00 (in 4.995927 seconds)
+2025-01-06 14:55:19,866 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 14:55:24 +05)" (scheduled at 2025-01-06 14:55:19.862001+05:00)
+2025-01-06 14:55:19,866 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 14:55:24 +05)" executed successfully
+2025-01-06 14:55:24,866 Looking for jobs to run
+2025-01-06 14:55:24,867 Next wakeup is due at 2025-01-06 14:55:29.862001+05:00 (in 4.994871 seconds)
+2025-01-06 14:55:24,867 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 14:55:29 +05)" (scheduled at 2025-01-06 14:55:24.862001+05:00)
+2025-01-06 14:55:24,867 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 14:55:29 +05)" executed successfully
+2025-01-06 14:55:29,867 Looking for jobs to run
+2025-01-06 14:55:29,867 Next wakeup is due at 2025-01-06 14:55:34.862001+05:00 (in 4.994295 seconds)
+2025-01-06 14:55:29,868 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 14:55:34 +05)" (scheduled at 2025-01-06 14:55:29.862001+05:00)
+2025-01-06 14:55:29,868 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 14:55:34 +05)" executed successfully
+2025-01-06 14:55:34,866 Looking for jobs to run
+2025-01-06 14:55:34,867 Next wakeup is due at 2025-01-06 14:55:39.862001+05:00 (in 4.994411 seconds)
+2025-01-06 14:55:34,867 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 14:55:39 +05)" (scheduled at 2025-01-06 14:55:34.862001+05:00)
+2025-01-06 14:55:34,868 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 14:55:39 +05)" executed successfully
+2025-01-06 14:55:39,867 Looking for jobs to run
+2025-01-06 14:55:39,867 Next wakeup is due at 2025-01-06 14:55:44.862001+05:00 (in 4.994180 seconds)
+2025-01-06 14:55:39,868 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 14:55:44 +05)" (scheduled at 2025-01-06 14:55:39.862001+05:00)
+2025-01-06 14:55:39,868 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 14:55:44 +05)" executed successfully
+2025-01-06 14:55:40,031 Infinity polling: polling exited
+2025-01-06 14:55:40,032 Break infinity polling

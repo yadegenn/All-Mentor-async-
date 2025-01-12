@@ -1,0 +1,27 @@
+2025-01-06 16:00:58,745 Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-01-06 16:00:58,746 Added job "checker" to job store "default"
+2025-01-06 16:00:58,747 Scheduler started
+2025-01-06 16:00:58,762 Looking for jobs to run
+2025-01-06 16:00:58,762 Next wakeup is due at 2025-01-06 16:01:03.744894+05:00 (in 4.982467 seconds)
+2025-01-06 16:01:03,748 Looking for jobs to run
+2025-01-06 16:01:03,748 Next wakeup is due at 2025-01-06 16:01:08.744894+05:00 (in 4.995944 seconds)
+2025-01-06 16:01:03,749 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 16:01:08 +05)" (scheduled at 2025-01-06 16:01:03.744894+05:00)
+2025-01-06 16:01:03,749 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 16:01:08 +05)" executed successfully
+2025-01-06 16:01:08,748 Looking for jobs to run
+2025-01-06 16:01:08,749 Next wakeup is due at 2025-01-06 16:01:13.744894+05:00 (in 4.995331 seconds)
+2025-01-06 16:01:08,749 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 16:01:13 +05)" (scheduled at 2025-01-06 16:01:08.744894+05:00)
+2025-01-06 16:01:08,749 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 16:01:13 +05)" executed successfully
+2025-01-06 16:01:13,751 Looking for jobs to run
+2025-01-06 16:01:13,751 Next wakeup is due at 2025-01-06 16:01:18.744894+05:00 (in 4.993462 seconds)
+2025-01-06 16:01:13,751 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 16:01:18 +05)" (scheduled at 2025-01-06 16:01:13.744894+05:00)
+2025-01-06 16:01:13,751 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 16:01:18 +05)" executed successfully
+2025-01-06 16:01:18,748 Looking for jobs to run
+2025-01-06 16:01:18,749 Next wakeup is due at 2025-01-06 16:01:23.744894+05:00 (in 4.995053 seconds)
+2025-01-06 16:01:18,750 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 16:01:23 +05)" (scheduled at 2025-01-06 16:01:18.744894+05:00)
+2025-01-06 16:01:18,750 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 16:01:23 +05)" executed successfully
+2025-01-06 16:01:23,748 Looking for jobs to run
+2025-01-06 16:01:23,749 Next wakeup is due at 2025-01-06 16:01:28.744894+05:00 (in 4.995181 seconds)
+2025-01-06 16:01:23,749 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 16:01:28 +05)" (scheduled at 2025-01-06 16:01:23.744894+05:00)
+2025-01-06 16:01:23,750 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-06 16:01:28 +05)" executed successfully
+2025-01-06 16:01:26,299 Infinity polling: polling exited
+2025-01-06 16:01:26,300 Break infinity polling

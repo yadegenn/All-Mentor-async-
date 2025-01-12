@@ -1,0 +1,229 @@
+2025-01-10 20:53:52,956 Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-01-10 20:53:52,956 Added job "checker" to job store "default"
+2025-01-10 20:53:52,956 Scheduler started
+2025-01-10 20:53:52,958 Looking for jobs to run
+2025-01-10 20:53:52,958 Next wakeup is due at 2025-01-10 20:53:57.955910+05:00 (in 4.997157 seconds)
+2025-01-10 20:53:57,677 Task exception was never retrieved
+future: <Task finished name='Task-9' coro=<AsyncTeleBot.process_new_updates() done, defined at /home/emilgoo/.var/app/com.jetbrains.PyCharm-Community/data/python/lib/python3.11/site-packages/telebot/async_telebot.py:603> exception=AttributeError("'MessageReactionUpdated' object has no attribute 'message_thread_id'")>
+Traceback (most recent call last):
+  File "/home/emilgoo/.var/app/com.jetbrains.PyCharm-Community/data/python/lib/python3.11/site-packages/telebot/async_telebot.py", line 745, in process_new_updates
+    await self.process_new_message_reaction(new_message_reactions)
+  File "/home/emilgoo/.var/app/com.jetbrains.PyCharm-Community/data/python/lib/python3.11/site-packages/telebot/async_telebot.py", line 790, in process_new_message_reaction
+    await self._process_updates(self.message_reaction_handlers, message_reaction, 'message_reaction')
+  File "/home/emilgoo/.var/app/com.jetbrains.PyCharm-Community/data/python/lib/python3.11/site-packages/telebot/async_telebot.py", line 523, in _process_updates
+    await asyncio.gather(*tasks)
+  File "/home/emilgoo/.var/app/com.jetbrains.PyCharm-Community/data/python/lib/python3.11/site-packages/telebot/async_telebot.py", line 549, in _run_middlewares_and_handlers
+    middleware_result = await middleware.pre_process(message, data)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/emilgoo/Проекты/All Mentor (async)/middlewares/timeout.py", line 69, in pre_process
+    await self.process_message_reaction(update)
+  File "/home/emilgoo/Проекты/All Mentor (async)/middlewares/timeout.py", line 96, in process_message_reaction
+    if str(reaction.message_thread_id) in group_data:
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'MessageReactionUpdated' object has no attribute 'message_thread_id'
+2025-01-10 20:53:57,956 Looking for jobs to run
+2025-01-10 20:53:57,957 Next wakeup is due at 2025-01-10 20:54:02.955910+05:00 (in 4.998786 seconds)
+2025-01-10 20:53:57,957 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:54:02 +05)" (scheduled at 2025-01-10 20:53:57.955910+05:00)
+2025-01-10 20:53:57,957 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:54:02 +05)" executed successfully
+2025-01-10 20:54:02,959 Looking for jobs to run
+2025-01-10 20:54:02,960 Next wakeup is due at 2025-01-10 20:54:07.955910+05:00 (in 4.995466 seconds)
+2025-01-10 20:54:02,960 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:54:07 +05)" (scheduled at 2025-01-10 20:54:02.955910+05:00)
+2025-01-10 20:54:02,960 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:54:07 +05)" executed successfully
+2025-01-10 20:54:07,959 Looking for jobs to run
+2025-01-10 20:54:07,959 Next wakeup is due at 2025-01-10 20:54:12.955910+05:00 (in 4.996404 seconds)
+2025-01-10 20:54:07,959 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:54:12 +05)" (scheduled at 2025-01-10 20:54:07.955910+05:00)
+2025-01-10 20:54:07,959 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:54:12 +05)" executed successfully
+2025-01-10 20:54:12,959 Looking for jobs to run
+2025-01-10 20:54:12,959 Next wakeup is due at 2025-01-10 20:54:17.955910+05:00 (in 4.996236 seconds)
+2025-01-10 20:54:12,959 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:54:17 +05)" (scheduled at 2025-01-10 20:54:12.955910+05:00)
+2025-01-10 20:54:12,960 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:54:17 +05)" executed successfully
+2025-01-10 20:54:17,957 Looking for jobs to run
+2025-01-10 20:54:17,957 Next wakeup is due at 2025-01-10 20:54:22.955910+05:00 (in 4.998446 seconds)
+2025-01-10 20:54:17,957 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:54:22 +05)" (scheduled at 2025-01-10 20:54:17.955910+05:00)
+2025-01-10 20:54:17,957 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:54:22 +05)" executed successfully
+2025-01-10 20:54:22,959 Looking for jobs to run
+2025-01-10 20:54:22,959 Next wakeup is due at 2025-01-10 20:54:27.955910+05:00 (in 4.996413 seconds)
+2025-01-10 20:54:22,959 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:54:27 +05)" (scheduled at 2025-01-10 20:54:22.955910+05:00)
+2025-01-10 20:54:22,959 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:54:27 +05)" executed successfully
+2025-01-10 20:54:27,959 Looking for jobs to run
+2025-01-10 20:54:27,960 Next wakeup is due at 2025-01-10 20:54:32.955910+05:00 (in 4.995508 seconds)
+2025-01-10 20:54:27,960 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:54:32 +05)" (scheduled at 2025-01-10 20:54:27.955910+05:00)
+2025-01-10 20:54:27,960 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:54:32 +05)" executed successfully
+2025-01-10 20:54:32,961 Looking for jobs to run
+2025-01-10 20:54:32,962 Next wakeup is due at 2025-01-10 20:54:37.955910+05:00 (in 4.993895 seconds)
+2025-01-10 20:54:32,962 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:54:37 +05)" (scheduled at 2025-01-10 20:54:32.955910+05:00)
+2025-01-10 20:54:32,962 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:54:37 +05)" executed successfully
+2025-01-10 20:54:37,956 Looking for jobs to run
+2025-01-10 20:54:37,957 Next wakeup is due at 2025-01-10 20:54:42.955910+05:00 (in 4.998605 seconds)
+2025-01-10 20:54:37,957 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:54:42 +05)" (scheduled at 2025-01-10 20:54:37.955910+05:00)
+2025-01-10 20:54:37,957 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:54:42 +05)" executed successfully
+2025-01-10 20:54:42,959 Looking for jobs to run
+2025-01-10 20:54:42,959 Next wakeup is due at 2025-01-10 20:54:47.955910+05:00 (in 4.996041 seconds)
+2025-01-10 20:54:42,960 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:54:47 +05)" (scheduled at 2025-01-10 20:54:42.955910+05:00)
+2025-01-10 20:54:42,960 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:54:47 +05)" executed successfully
+2025-01-10 20:54:47,959 Looking for jobs to run
+2025-01-10 20:54:47,959 Next wakeup is due at 2025-01-10 20:54:52.955910+05:00 (in 4.996277 seconds)
+2025-01-10 20:54:47,959 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:54:52 +05)" (scheduled at 2025-01-10 20:54:47.955910+05:00)
+2025-01-10 20:54:47,960 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:54:52 +05)" executed successfully
+2025-01-10 20:54:52,959 Looking for jobs to run
+2025-01-10 20:54:52,961 Next wakeup is due at 2025-01-10 20:54:57.955910+05:00 (in 4.994287 seconds)
+2025-01-10 20:54:52,961 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:54:57 +05)" (scheduled at 2025-01-10 20:54:52.955910+05:00)
+2025-01-10 20:54:52,962 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:54:57 +05)" executed successfully
+2025-01-10 20:54:57,959 Looking for jobs to run
+2025-01-10 20:54:57,960 Next wakeup is due at 2025-01-10 20:55:02.955910+05:00 (in 4.995624 seconds)
+2025-01-10 20:54:57,960 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:55:02 +05)" (scheduled at 2025-01-10 20:54:57.955910+05:00)
+2025-01-10 20:54:57,960 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:55:02 +05)" executed successfully
+2025-01-10 20:55:02,960 Looking for jobs to run
+2025-01-10 20:55:02,961 Next wakeup is due at 2025-01-10 20:55:07.955910+05:00 (in 4.994469 seconds)
+2025-01-10 20:55:02,961 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:55:07 +05)" (scheduled at 2025-01-10 20:55:02.955910+05:00)
+2025-01-10 20:55:02,962 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:55:07 +05)" executed successfully
+2025-01-10 20:55:07,959 Looking for jobs to run
+2025-01-10 20:55:07,959 Next wakeup is due at 2025-01-10 20:55:12.955910+05:00 (in 4.996025 seconds)
+2025-01-10 20:55:07,960 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:55:12 +05)" (scheduled at 2025-01-10 20:55:07.955910+05:00)
+2025-01-10 20:55:07,960 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:55:12 +05)" executed successfully
+2025-01-10 20:55:12,961 Looking for jobs to run
+2025-01-10 20:55:12,961 Next wakeup is due at 2025-01-10 20:55:17.955910+05:00 (in 4.994567 seconds)
+2025-01-10 20:55:12,961 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:55:17 +05)" (scheduled at 2025-01-10 20:55:12.955910+05:00)
+2025-01-10 20:55:12,961 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:55:17 +05)" executed successfully
+2025-01-10 20:55:17,959 Looking for jobs to run
+2025-01-10 20:55:17,959 Next wakeup is due at 2025-01-10 20:55:22.955910+05:00 (in 4.996106 seconds)
+2025-01-10 20:55:17,960 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:55:22 +05)" (scheduled at 2025-01-10 20:55:17.955910+05:00)
+2025-01-10 20:55:17,960 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:55:22 +05)" executed successfully
+2025-01-10 20:55:22,960 Looking for jobs to run
+2025-01-10 20:55:22,961 Next wakeup is due at 2025-01-10 20:55:27.955910+05:00 (in 4.994763 seconds)
+2025-01-10 20:55:22,961 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:55:27 +05)" (scheduled at 2025-01-10 20:55:22.955910+05:00)
+2025-01-10 20:55:22,961 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:55:27 +05)" executed successfully
+2025-01-10 20:55:27,959 Looking for jobs to run
+2025-01-10 20:55:27,959 Next wakeup is due at 2025-01-10 20:55:32.955910+05:00 (in 4.996354 seconds)
+2025-01-10 20:55:27,959 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:55:32 +05)" (scheduled at 2025-01-10 20:55:27.955910+05:00)
+2025-01-10 20:55:27,959 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:55:32 +05)" executed successfully
+2025-01-10 20:55:32,960 Looking for jobs to run
+2025-01-10 20:55:32,960 Next wakeup is due at 2025-01-10 20:55:37.955910+05:00 (in 4.995610 seconds)
+2025-01-10 20:55:32,960 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:55:37 +05)" (scheduled at 2025-01-10 20:55:32.955910+05:00)
+2025-01-10 20:55:32,960 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:55:37 +05)" executed successfully
+2025-01-10 20:55:37,959 Looking for jobs to run
+2025-01-10 20:55:37,959 Next wakeup is due at 2025-01-10 20:55:42.955910+05:00 (in 4.996433 seconds)
+2025-01-10 20:55:37,959 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:55:42 +05)" (scheduled at 2025-01-10 20:55:37.955910+05:00)
+2025-01-10 20:55:37,959 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:55:42 +05)" executed successfully
+2025-01-10 20:55:42,959 Looking for jobs to run
+2025-01-10 20:55:42,959 Next wakeup is due at 2025-01-10 20:55:47.955910+05:00 (in 4.995934 seconds)
+2025-01-10 20:55:42,960 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:55:47 +05)" (scheduled at 2025-01-10 20:55:42.955910+05:00)
+2025-01-10 20:55:42,960 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:55:47 +05)" executed successfully
+2025-01-10 20:55:47,960 Looking for jobs to run
+2025-01-10 20:55:47,960 Next wakeup is due at 2025-01-10 20:55:52.955910+05:00 (in 4.995132 seconds)
+2025-01-10 20:55:47,961 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:55:52 +05)" (scheduled at 2025-01-10 20:55:47.955910+05:00)
+2025-01-10 20:55:47,961 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:55:52 +05)" executed successfully
+2025-01-10 20:55:52,959 Looking for jobs to run
+2025-01-10 20:55:52,959 Next wakeup is due at 2025-01-10 20:55:57.955910+05:00 (in 4.996371 seconds)
+2025-01-10 20:55:52,959 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:55:57 +05)" (scheduled at 2025-01-10 20:55:52.955910+05:00)
+2025-01-10 20:55:52,960 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:55:57 +05)" executed successfully
+2025-01-10 20:55:57,960 Looking for jobs to run
+2025-01-10 20:55:57,961 Next wakeup is due at 2025-01-10 20:56:02.955910+05:00 (in 4.994838 seconds)
+2025-01-10 20:55:57,961 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:56:02 +05)" (scheduled at 2025-01-10 20:55:57.955910+05:00)
+2025-01-10 20:55:57,961 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:56:02 +05)" executed successfully
+2025-01-10 20:56:02,960 Looking for jobs to run
+2025-01-10 20:56:02,960 Next wakeup is due at 2025-01-10 20:56:07.955910+05:00 (in 4.994989 seconds)
+2025-01-10 20:56:02,961 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:56:07 +05)" (scheduled at 2025-01-10 20:56:02.955910+05:00)
+2025-01-10 20:56:02,961 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:56:07 +05)" executed successfully
+2025-01-10 20:56:07,961 Looking for jobs to run
+2025-01-10 20:56:07,963 Next wakeup is due at 2025-01-10 20:56:12.955910+05:00 (in 4.994182 seconds)
+2025-01-10 20:56:07,963 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:56:12 +05)" (scheduled at 2025-01-10 20:56:07.955910+05:00)
+2025-01-10 20:56:07,963 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:56:12 +05)" executed successfully
+2025-01-10 20:56:12,960 Looking for jobs to run
+2025-01-10 20:56:12,960 Next wakeup is due at 2025-01-10 20:56:17.955910+05:00 (in 4.995425 seconds)
+2025-01-10 20:56:12,960 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:56:17 +05)" (scheduled at 2025-01-10 20:56:12.955910+05:00)
+2025-01-10 20:56:12,960 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:56:17 +05)" executed successfully
+2025-01-10 20:56:17,960 Looking for jobs to run
+2025-01-10 20:56:17,961 Next wakeup is due at 2025-01-10 20:56:22.955910+05:00 (in 4.994503 seconds)
+2025-01-10 20:56:17,961 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:56:22 +05)" (scheduled at 2025-01-10 20:56:17.955910+05:00)
+2025-01-10 20:56:17,961 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:56:22 +05)" executed successfully
+2025-01-10 20:56:22,960 Looking for jobs to run
+2025-01-10 20:56:22,960 Next wakeup is due at 2025-01-10 20:56:27.955910+05:00 (in 4.995602 seconds)
+2025-01-10 20:56:22,960 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:56:27 +05)" (scheduled at 2025-01-10 20:56:22.955910+05:00)
+2025-01-10 20:56:22,960 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:56:27 +05)" executed successfully
+2025-01-10 20:56:27,961 Looking for jobs to run
+2025-01-10 20:56:27,961 Next wakeup is due at 2025-01-10 20:56:32.955910+05:00 (in 4.994004 seconds)
+2025-01-10 20:56:27,962 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:56:32 +05)" (scheduled at 2025-01-10 20:56:27.955910+05:00)
+2025-01-10 20:56:27,962 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:56:32 +05)" executed successfully
+2025-01-10 20:56:32,959 Looking for jobs to run
+2025-01-10 20:56:32,960 Next wakeup is due at 2025-01-10 20:56:37.955910+05:00 (in 4.995795 seconds)
+2025-01-10 20:56:32,960 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:56:37 +05)" (scheduled at 2025-01-10 20:56:32.955910+05:00)
+2025-01-10 20:56:32,960 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:56:37 +05)" executed successfully
+2025-01-10 20:56:37,960 Looking for jobs to run
+2025-01-10 20:56:37,961 Next wakeup is due at 2025-01-10 20:56:42.955910+05:00 (in 4.994583 seconds)
+2025-01-10 20:56:37,962 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:56:42 +05)" (scheduled at 2025-01-10 20:56:37.955910+05:00)
+2025-01-10 20:56:37,962 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:56:42 +05)" executed successfully
+2025-01-10 20:56:42,959 Looking for jobs to run
+2025-01-10 20:56:42,960 Next wakeup is due at 2025-01-10 20:56:47.955910+05:00 (in 4.995055 seconds)
+2025-01-10 20:56:42,961 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:56:47 +05)" (scheduled at 2025-01-10 20:56:42.955910+05:00)
+2025-01-10 20:56:42,961 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:56:47 +05)" executed successfully
+2025-01-10 20:56:47,959 Looking for jobs to run
+2025-01-10 20:56:47,959 Next wakeup is due at 2025-01-10 20:56:52.955910+05:00 (in 4.996035 seconds)
+2025-01-10 20:56:47,960 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:56:52 +05)" (scheduled at 2025-01-10 20:56:47.955910+05:00)
+2025-01-10 20:56:47,960 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:56:52 +05)" executed successfully
+2025-01-10 20:56:52,959 Looking for jobs to run
+2025-01-10 20:56:52,959 Next wakeup is due at 2025-01-10 20:56:57.955910+05:00 (in 4.996402 seconds)
+2025-01-10 20:56:52,959 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:56:57 +05)" (scheduled at 2025-01-10 20:56:52.955910+05:00)
+2025-01-10 20:56:52,959 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:56:57 +05)" executed successfully
+2025-01-10 20:56:57,959 Looking for jobs to run
+2025-01-10 20:56:57,960 Next wakeup is due at 2025-01-10 20:57:02.955910+05:00 (in 4.995862 seconds)
+2025-01-10 20:56:57,960 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:57:02 +05)" (scheduled at 2025-01-10 20:56:57.955910+05:00)
+2025-01-10 20:56:57,960 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:57:02 +05)" executed successfully
+2025-01-10 20:57:02,960 Looking for jobs to run
+2025-01-10 20:57:02,961 Next wakeup is due at 2025-01-10 20:57:07.955910+05:00 (in 4.994203 seconds)
+2025-01-10 20:57:02,962 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:57:07 +05)" (scheduled at 2025-01-10 20:57:02.955910+05:00)
+2025-01-10 20:57:02,962 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:57:07 +05)" executed successfully
+2025-01-10 20:57:07,961 Looking for jobs to run
+2025-01-10 20:57:07,963 Next wakeup is due at 2025-01-10 20:57:12.955910+05:00 (in 4.992741 seconds)
+2025-01-10 20:57:07,963 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:57:12 +05)" (scheduled at 2025-01-10 20:57:07.955910+05:00)
+2025-01-10 20:57:07,963 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:57:12 +05)" executed successfully
+2025-01-10 20:57:12,959 Looking for jobs to run
+2025-01-10 20:57:12,959 Next wakeup is due at 2025-01-10 20:57:17.955910+05:00 (in 4.996454 seconds)
+2025-01-10 20:57:12,959 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:57:17 +05)" (scheduled at 2025-01-10 20:57:12.955910+05:00)
+2025-01-10 20:57:12,959 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:57:17 +05)" executed successfully
+2025-01-10 20:57:17,960 Looking for jobs to run
+2025-01-10 20:57:17,962 Next wakeup is due at 2025-01-10 20:57:22.955910+05:00 (in 4.993287 seconds)
+2025-01-10 20:57:17,962 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:57:22 +05)" (scheduled at 2025-01-10 20:57:17.955910+05:00)
+2025-01-10 20:57:17,962 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:57:22 +05)" executed successfully
+2025-01-10 20:57:22,967 Looking for jobs to run
+2025-01-10 20:57:22,973 Next wakeup is due at 2025-01-10 20:57:27.955910+05:00 (in 4.982021 seconds)
+2025-01-10 20:57:22,974 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:57:27 +05)" (scheduled at 2025-01-10 20:57:22.955910+05:00)
+2025-01-10 20:57:22,974 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:57:27 +05)" executed successfully
+2025-01-10 20:57:27,961 Looking for jobs to run
+2025-01-10 20:57:27,961 Next wakeup is due at 2025-01-10 20:57:32.955910+05:00 (in 4.994139 seconds)
+2025-01-10 20:57:27,961 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:57:32 +05)" (scheduled at 2025-01-10 20:57:27.955910+05:00)
+2025-01-10 20:57:27,962 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:57:32 +05)" executed successfully
+2025-01-10 20:57:32,960 Looking for jobs to run
+2025-01-10 20:57:32,961 Next wakeup is due at 2025-01-10 20:57:37.955910+05:00 (in 4.994908 seconds)
+2025-01-10 20:57:32,961 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:57:37 +05)" (scheduled at 2025-01-10 20:57:32.955910+05:00)
+2025-01-10 20:57:32,961 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:57:37 +05)" executed successfully
+2025-01-10 20:57:37,959 Looking for jobs to run
+2025-01-10 20:57:37,959 Next wakeup is due at 2025-01-10 20:57:42.955910+05:00 (in 4.995995 seconds)
+2025-01-10 20:57:37,960 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:57:42 +05)" (scheduled at 2025-01-10 20:57:37.955910+05:00)
+2025-01-10 20:57:37,960 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:57:42 +05)" executed successfully
+2025-01-10 20:57:42,959 Looking for jobs to run
+2025-01-10 20:57:42,960 Next wakeup is due at 2025-01-10 20:57:47.955910+05:00 (in 4.995709 seconds)
+2025-01-10 20:57:42,960 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:57:47 +05)" (scheduled at 2025-01-10 20:57:42.955910+05:00)
+2025-01-10 20:57:42,960 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:57:47 +05)" executed successfully
+2025-01-10 20:57:47,959 Looking for jobs to run
+2025-01-10 20:57:47,959 Next wakeup is due at 2025-01-10 20:57:52.955910+05:00 (in 4.996489 seconds)
+2025-01-10 20:57:47,959 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:57:52 +05)" (scheduled at 2025-01-10 20:57:47.955910+05:00)
+2025-01-10 20:57:47,959 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:57:52 +05)" executed successfully
+2025-01-10 20:57:52,961 Looking for jobs to run
+2025-01-10 20:57:52,962 Next wakeup is due at 2025-01-10 20:57:57.955910+05:00 (in 4.993723 seconds)
+2025-01-10 20:57:52,962 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:57:57 +05)" (scheduled at 2025-01-10 20:57:52.955910+05:00)
+2025-01-10 20:57:52,962 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:57:57 +05)" executed successfully
+2025-01-10 20:57:57,960 Looking for jobs to run
+2025-01-10 20:57:57,961 Next wakeup is due at 2025-01-10 20:58:02.955910+05:00 (in 4.994710 seconds)
+2025-01-10 20:57:57,961 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:58:02 +05)" (scheduled at 2025-01-10 20:57:57.955910+05:00)
+2025-01-10 20:57:57,961 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:58:02 +05)" executed successfully
+2025-01-10 20:58:02,959 Looking for jobs to run
+2025-01-10 20:58:02,959 Next wakeup is due at 2025-01-10 20:58:07.955910+05:00 (in 4.996433 seconds)
+2025-01-10 20:58:02,959 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:58:07 +05)" (scheduled at 2025-01-10 20:58:02.955910+05:00)
+2025-01-10 20:58:02,959 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:58:07 +05)" executed successfully
+2025-01-10 20:58:07,959 Looking for jobs to run
+2025-01-10 20:58:07,960 Next wakeup is due at 2025-01-10 20:58:12.955910+05:00 (in 4.995713 seconds)
+2025-01-10 20:58:07,960 Running job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:58:12 +05)" (scheduled at 2025-01-10 20:58:07.955910+05:00)
+2025-01-10 20:58:07,960 Job "checker (trigger: interval[0:00:05], next run at: 2025-01-10 20:58:12 +05)" executed successfully
+2025-01-10 20:58:10,011 Infinity polling: polling exited
+2025-01-10 20:58:10,014 Break infinity polling

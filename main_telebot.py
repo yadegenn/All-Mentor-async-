@@ -3,6 +3,7 @@ import asyncio
 import copy
 import html
 import logging
+import time
 import traceback
 from datetime import timedelta, datetime
 from io import StringIO
@@ -40,7 +41,7 @@ GROUP_ID = -1002365612235
 db_path = "bot.db"
 WORK_CHAT_FILE = 'work_chat.txt'
 DEVELOPER_ID = 5434361630
-ADMINS = [5434361630, 629454540]
+ADMINS = [5434361630, 629454540, 612324246]
 is_weekend_have = False
 is_latehour_have = False
 is_photo_start = True
@@ -176,31 +177,57 @@ async def handle_admin_callback(call, state: StateContext):
 @bot.message_handler(state=AdminStates.spam, content_types=telebot.util.content_type_media, func=lambda message: message.chat.type == "private" and message.chat.id in ADMINS)
 async def spam(message, state: StateContext, album=None, db=None):
     reply_message_id = None
+    try:
+        all_users = await db.get_all_users()
+        count_people = 0
 
-    all_users = await db.get_all_users()
-
-
-    if album:
-        count_photos = len(album)
-        media = []
-        for i in album:
-            if (i.photo):
-                media.append(
-                    InputMediaPhoto(media=i.photo[-1].file_id, caption=i.caption, caption_entities=i.caption_entities))
-            elif (i.video):
-                media.append(
-                    InputMediaVideo(media=i.video.file_id, caption=i.caption, caption_entities=i.caption_entities))
-            elif (i.document):
-                media.append(InputMediaDocument(media=i.document.file_id, caption=i.caption,
-                                                caption_entities=i.caption_entities))
-        for i in all_users:
-            await bot.send_media_group(chat_id=i.chat_id, media=media, reply_to_message_id=reply_message_id)
-        await state.delete()
-    else:
-        for i in all_users:
-            await bot.copy_message(chat_id=i.chat_id, from_chat_id=message.chat.id, message_id=message.message_id,
-                               reply_to_message_id=reply_message_id)
-        await state.delete()
+        if album:
+            count_photos = len(album)
+            media = []
+            for i in album:
+                if (i.photo):
+                    media.append(
+                        InputMediaPhoto(media=i.photo[-1].file_id, caption=i.caption, caption_entities=i.caption_entities, has_spoiler=i.has_media_spoiler))
+                elif (i.video):
+                    media.append(
+                        InputMediaVideo(media=i.video.file_id, caption=i.caption, caption_entities=i.caption_entities, has_spoiler=i.has_media_spoiler))
+                elif (i.document):
+                    media.append(InputMediaDocument(media=i.document.file_id, caption=i.caption,
+                                                    caption_entities=i.caption_entities))
+            for i in all_users:
+                try:
+                    await bot.send_media_group(chat_id=i.chat_id, media=media, reply_to_message_id=reply_message_id)
+                    count_people+=1
+                except:
+                    pass
+            await bot.send_message(message.chat.id, f"Количество человек получившее рассылку: {count_people} ")
+            await state.delete()
+        else:
+            for i in all_users:
+                try:
+                    await bot.copy_message(chat_id=i.chat_id, from_chat_id=message.chat.id, message_id=message.message_id,
+                                       reply_to_message_id=reply_message_id)
+                    count_people += 1
+                except:
+                    pass
+            await bot.send_message(message.chat.id, f"Количество человек получившее рассылку: {count_people}")
+            await state.delete()
+    except Exception as e:
+        if "Too Many Requests" in str(e):
+            await bot.reply_to(message,
+                               "Ваше сообщение не было доставлено, так как Telegram посчитал его спамом. Попробуйте отправить его еще раз.")
+        elif "message to be replied not found" in str(e):
+            await bot.reply_to(message,
+                               "Ваше сообщение не было доставлено, так как мы не смогли найти оригинальное сообщение. Возможно, оно было удалено, являлось рассылкой, сообщением бота или недавно произошло обновление и старые сообщения больше не функциональны. Попробуйте отправить его еще раз без ответа на это сообщение или ответить на соседнее сообщение.")
+        elif "chat not found" in str(e):
+            pass
+        else:
+            tb = traceback.extract_tb(e.__traceback__)
+            last_trace = tb[-1]
+            line_number = last_trace.lineno
+            line_content = last_trace.line
+            await bot.send_message(DEVELOPER_ID,
+                                   f"Ошибка при отправке сообщения от посредника в теме ({message.message_thread_id}) строка {line_number}: {line_content} код ошибки: {e}")
 @bot.message_handler(state=AdminStates.upload_data, content_types=['document'])
 async def handle_document(message, state: StateContext):
     if message.chat.id in ADMINS and message.document.mime_type == 'text/plain' and message.chat.type == 'private':
@@ -361,17 +388,26 @@ def get_content_data(message):
         "photo": {
             "file_id": message.photo[-1].file_id if message.content_type == "photo" else None,
             "send_function": bot.send_photo,
-            "send_param": "photo"
+            "send_param": "photo",
+            "object": InputMediaPhoto
         },
         "document": {
             "file_id": message.document.file_id if message.content_type == "document" else None,
             "send_function": bot.send_document,
-            "send_param": "document"
+            "send_param": "document",
+            "object": InputMediaDocument
         },
         "video": {
             "file_id": message.video.file_id if message.content_type == "video" else None,
             "send_function": bot.send_video,
-            "send_param": "video"
+            "send_param": "video",
+            "object": InputMediaVideo
+        },
+        "audio": {
+            "file_id": message.audio.file_id if message.content_type == "audio" else None,
+            "send_function": bot.send_audio,
+            "send_param": "audio",
+            "object": InputMediaAudio
         },
         "photo_caption_edit": {
             "file_id": message.photo[-1].file_id if message.content_type == "photo" else None
@@ -380,6 +416,9 @@ def get_content_data(message):
             "file_id": message.video.file_id if message.content_type == "video" else None
         },
         "document_caption_edit": {
+            "file_id": message.document.file_id if message.content_type == "document" else None
+        },
+        "audio_caption_edit": {
             "file_id": message.document.file_id if message.content_type == "document" else None
         }
     }
@@ -395,16 +434,26 @@ async def handle_edited_message(message, db=None):
             topic_message_id = await db.get_group_message_id_by_private_message(message.message_id)
             if message.content_type+"_caption_edit" in content_data:
                 data = content_data[message.content_type]
-                if(data['file_id']):
-                    await bot.reply_to(message,"Бот пока не поддерживает редактирование файлов")
-                else:
-                    result_text, result_entities = caption_messages(message, True)
+                print(message.caption)
+                result_text, result_entities = caption_messages(message, True)
 
-                    # Вызываем соответствующую функцию
+                # Вызываем соответствующую функцию
+                try:
                     await bot.edit_message_caption(
                         chat_id=GROUP_ID,
                         caption=result_text,
                         caption_entities=result_entities,
+                        message_id=topic_message_id
+                    )
+                except Exception as e:
+                    if "specified new message content and reply markup are exactly the same as a current content and reply markup of the message" in str(e) and message.media_group_id:
+                        await bot.reply_to(message, "Бот пока не поддерживает изменение медиа в альбоме")
+                if(data["file_id"] and message.media_group_id and message.caption == None):
+                    await bot.reply_to(message, "Бот пока не поддерживает изменение медиа в альбоме")
+                elif(data["file_id"] and message.media_group_id==None):
+                    await bot.edit_message_media(
+                        chat_id=GROUP_ID,
+                        media=data["object"](data["file_id"], caption=result_text, caption_entities=result_entities),
                         message_id=topic_message_id
                     )
             elif (message.content_type == "text"):
@@ -420,16 +469,22 @@ async def handle_edited_message(message, db=None):
             if message.content_type+"_caption_edit" in content_data:
 
                 data = content_data[message.content_type]
-
-                if (data['file_id']):
-                    await bot.reply_to(message, "Бот пока не поддерживает редактирование файлов")
-                else:
-
-                    # Вызываем соответствующую функцию
+                try:
                     await bot.edit_message_caption(
                         chat_id=chat_id,
                         caption=message.caption,
                         caption_entities=message.caption_entities,
+                        message_id=private_message_id
+                    )
+                except Exception as e:
+                    if "specified new message content and reply markup are exactly the same as a current content and reply markup of the message" in str(e) and message.media_group_id:
+                        await bot.reply_to(message, "Бот пока не поддерживает изменение медиа в альбоме")
+                if (data["file_id"] and message.media_group_id and message.caption == None):
+                    await bot.reply_to(message, "Бот пока не поддерживает изменение медиа в альбоме")
+                elif (data["file_id"] and message.media_group_id == None):
+                    await bot.edit_message_media(
+                        chat_id=chat_id,
+                        media=data["object"](data["file_id"], caption=message.caption, caption_entities=message.caption_entities),
                         message_id=private_message_id
                     )
             elif (message.content_type == "text"):
@@ -445,6 +500,8 @@ async def handle_edited_message(message, db=None):
             elif message.chat.id == int(GROUP_ID):
                 await bot.reply_to(message,
                                    "Ваше сообщение не было отредактировано, так как мы не смогли получить оригинальное сообщение. Возможно, оно было удалено пользователем, не успело отправиться или недавно произошло обновление и старые сообщения больше не функциональны. Попробуйте отредактировать это сообщение снова или отредактировать соседнее сообщение. Если все условия были соблюдены и ошибка повторяется, сообщите о ней.")
+        elif "specified new message content and reply markup are exactly the same as a current content and reply markup of the message" in str(e):
+            pass
         else:
             tb = traceback.extract_tb(e.__traceback__)
             last_trace = tb[-1]
@@ -509,9 +566,9 @@ async def private_messages(message, album: list = None, db=None):
             for i in album:
                 result_text, result_entities = caption_messages(i)
                 if (i.photo):
-                    media.append(InputMediaPhoto(media=i.photo[-1].file_id, caption=result_text, caption_entities=result_entities))
+                    media.append(InputMediaPhoto(media=i.photo[-1].file_id, caption=result_text, caption_entities=result_entities, has_spoiler=i.has_media_spoiler))
                 elif(i.video):
-                    media.append(InputMediaVideo(media=i.video.file_id, caption=result_text, caption_entities=result_entities))
+                    media.append(InputMediaVideo(media=i.video.file_id, caption=result_text, caption_entities=result_entities, has_spoiler=i.has_media_spoiler))
                 elif (i.document):
                     media.append(InputMediaDocument(media=i.document.file_id, caption=result_text, caption_entities=result_entities))
                 elif (i.audio):
@@ -528,12 +585,14 @@ async def private_messages(message, album: list = None, db=None):
                 if data["file_id"]:  # Если file_id определен
                     result_text, result_entities = caption_messages(message)
 
+
                     # Вызываем соответствующую функцию
                     await db.add_message_to_db(await data["send_function"](
                         chat_id=GROUP_ID,
                         caption=result_text,
                         caption_entities=result_entities,
                         message_thread_id=topic_id,
+                        has_spoiler=message.has_media_spoiler,
                         reply_to_message_id = reply_message_id,
                         **{data["send_param"]: data["file_id"]}
                     ),topic_id, None)
@@ -580,9 +639,9 @@ async def group_messages(message, album: list = None, db=None):
             media = []
             for i in album:
                 if (i.photo):
-                    media.append(InputMediaPhoto(media=i.photo[-1].file_id, caption=i.caption, caption_entities=i.caption_entities))
+                    media.append(InputMediaPhoto(media=i.photo[-1].file_id, caption=i.caption, caption_entities=i.caption_entities, has_spoiler=i.has_media_spoiler))
                 elif(i.video):
-                    media.append(InputMediaVideo(media=i.video.file_id, caption=i.caption, caption_entities=i.caption_entities))
+                    media.append(InputMediaVideo(media=i.video.file_id, caption=i.caption, caption_entities=i.caption_entities, has_spoiler=i.has_media_spoiler))
                 elif (i.document):
                     media.append(InputMediaDocument(media=i.document.file_id, caption=i.caption, caption_entities=i.caption_entities))
                 elif (i.audio):
@@ -615,19 +674,24 @@ async def scheduler_func():
 async def main():
     print("Бот запущен!")
     setup_logging()
-    try:
-        await asyncio.gather(bot.infinity_polling(allowed_updates=[
-            'message',
-            'edited_message',
-            'channel_post',
-            'edited_channel_post',
-            'message_reaction',
-            'message_reaction_count',
-            'callback_query',
-            'chat_member'
-        ]),scheduler_func())
-    except Exception as e:
-        logging.error(f"An error occurred код ошибки: {e}", exc_info=True)
+    while True:
+        try:
+            print("работает")
+            await asyncio.gather(bot.infinity_polling(allowed_updates=[
+                'message',
+                'edited_message',
+                'channel_post',
+                'edited_channel_post',
+                'message_reaction',
+                'message_reaction_count',
+                'callback_query',
+                'chat_member'
+            ]),scheduler_func())
+
+            time.sleep(5)
+        except Exception as e:
+            print("ошибка")
+            logging.error(f"An error occurred код ошибки: {e}", exc_info=True)
 async def checker():
     global weekend, latehour
     for i in rules_checker:

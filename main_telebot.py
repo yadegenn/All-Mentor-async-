@@ -38,8 +38,9 @@ state_storage = StateMemoryStorage()
 bot = AsyncTeleBot(TOKEN, state_storage=state_storage)
 scheduler = AsyncIOScheduler()
 GROUP_ID = -1002365612235
-db_path = "bot.db"
-WORK_CHAT_FILE = 'work_chat.txt'
+prefix_folder = ""
+db_path = f"{prefix_folder}bot.db"
+WORK_CHAT_FILE = f'{prefix_folder}work_chat.txt'
 DEVELOPER_ID = 5434361630
 ADMINS = [5434361630, 629454540, 612324246]
 is_weekend_have = False
@@ -59,7 +60,7 @@ translator_hub = TranslatorHub(
         FluentTranslator(
             locale="ru",
             translator=FluentBundle.from_files(
-                locale="ru-RU", filenames=["locales/ru.ftl"]
+                locale="ru-RU", filenames=[f"{prefix_folder}locales/ru.ftl"]
             )
         ),
     ],
@@ -289,7 +290,7 @@ async def handle_start(message, album: list = None, db=None, checker=None):
     user_name = message.from_user.username or message.from_user.first_name
     welcome_message = _('start-message', name=user_name)
     if (is_photo_start):
-        await bot.send_photo(message.chat.id, InputFile("main.png"), caption=welcome_message, parse_mode='HTML')
+        await bot.send_photo(message.chat.id, InputFile(f"{prefix_folder}main.png"), caption=welcome_message, parse_mode='HTML')
     else:
         await bot.send_message(chat_id=message.chat.id, text=welcome_message, parse_mode='HTML', link_preview_options=LinkPreviewOptions(is_disabled=True))
 
@@ -752,8 +753,8 @@ async def checker():
                 latehour = False
 def setup_logging():
     # Создание директорий для логов
-    error_log_dir = "logs/errors"
-    debug_log_dir = "logs/debug"
+    error_log_dir = f"{prefix_folder}logs/errors"
+    debug_log_dir = f"{prefix_folder}logs/debug"
 
     if not os.path.exists(error_log_dir):
         os.makedirs(error_log_dir)

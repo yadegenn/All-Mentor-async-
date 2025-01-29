@@ -25,7 +25,7 @@ from telebot.types import InputMediaPhoto, InputMediaVideo, InputMediaDocument, 
     InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton, InputFile, InputMediaAudio, LinkPreviewOptions
 from telebot.types import MessageEntity
 from middlewares.album import AlbumMiddleware
-from middlewares.db import DatabaseMiddleware
+from middlewares.db import DatabaseMiddleware, Database
 from aiohttp import ClientSession
 from telebot.asyncio_handler_backends import ContinueHandling
 from middlewares.timeout import UserTimeChecker, user_data, group_data
@@ -544,10 +544,12 @@ async def get_reactions(message, album: list = None, db=None):
                                    f"Ошибка при установление эмоции на сообщение в {mess} ({message.message_id}) строка {line_number}: {line_content} код ошибки: {e}")
 
 @bot.message_handler(content_types=telebot.util.content_type_media, func=lambda message: message.chat.type == "private" )
-async def private_messages(message, album: list = None, db=None):
+async def private_messages(message, album: list = None, db=None, new_topic_id=None):
     global weekend, latehour, send_weekend_users, send_latehour_users
     try:
-        topic_id = int(await db.get_or_create_topic())
+        print(f"[DEBUG] Starting message processing")
+        topic_id = await db.get_or_create_topic()
+        print(f"[DEBUG] Got topic_id: {topic_id}")
         chat_id = message.chat.id
         reply_message_id = None
 
@@ -610,6 +612,7 @@ async def private_messages(message, album: list = None, db=None):
             else:
                 await db.add_message_to_db(await bot.copy_message(chat_id=GROUP_ID, from_chat_id=message.chat.id, message_id=message.message_id, message_thread_id=topic_id), topic_id, None)
     except Exception as e:
+        print(f"[DEBUG] Error in private_messages: {e}")
         if "Too Many Requests" in str(e):
             await bot.reply_to(message,
                                "Ваше сообщение не было доставлено, так как Telegram посчитал его спамом. Попробуйте отправить его еще раз.")
@@ -617,9 +620,12 @@ async def private_messages(message, album: list = None, db=None):
             await bot.reply_to(message,
                                "Ваше сообщение не было доставлено, так как мы не смогли найти оригинальное сообщение. Возможно, оно было удалено, являлось рассылкой, сообщением бота или недавно произошло обновление и старые сообщения больше не функциональны. Попробуйте отправить его еще раз без ответа на это сообщение или ответить на соседнее сообщение.")
         elif "message thread not found" in str(e):
+            print("[DEBUG] Thread not found, recreating...")
+            print(f"{topic_id} - очистка")
             await db.delete_topic_messages(topic_id)
-            await db.create_new_topic()
-            await private_messages(message,album,db)
+            new_topic = await db.get_or_create_topic(is_thread_not=True)
+            print(f"[DEBUG] Created new topic: {new_topic}")
+            await private_messages(message,album,db, new_topic)
 
         else:
             tb = traceback.extract_tb(e.__traceback__)
@@ -665,6 +671,8 @@ async def group_messages(message, album: list = None, db=None):
                                "Ваше сообщение не было доставлено, так как мы не смогли найти оригинальное сообщение. Возможно, оно было удалено, являлось рассылкой, сообщением бота или недавно произошло обновление и старые сообщения больше не функциональны. Попробуйте отправить его еще раз без ответа на это сообщение или ответить на соседнее сообщение.")
         elif "chat not found" in str(e):
             pass
+        elif "bot was blocked by the user" in str(e):
+            await bot.reply_to(message, "Ваше сообщение не было доставлено, пользователь заблокировал бота")
         else:
             tb = traceback.extract_tb(e.__traceback__)
             last_trace = tb[-1]

@@ -22,7 +22,7 @@ from telebot.asyncio_storage import StateMemoryStorage
 from telebot.states import StatesGroup, State
 from telebot.states.asyncio import StateContext
 from telebot.types import InputMediaPhoto, InputMediaVideo, InputMediaDocument, ReplyParameters, InlineKeyboardMarkup, \
-    InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton, InputFile, InputMediaAudio
+    InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton, InputFile, InputMediaAudio, LinkPreviewOptions
 from telebot.types import MessageEntity
 from middlewares.album import AlbumMiddleware
 from middlewares.db import DatabaseMiddleware
@@ -228,40 +228,41 @@ async def spam(message, state: StateContext, album=None, db=None):
             line_content = last_trace.line
             await bot.send_message(DEVELOPER_ID,
                                    f"Ошибка при отправке сообщения от посредника в теме ({message.message_thread_id}) строка {line_number}: {line_content} код ошибки: {e}")
+
+
 @bot.message_handler(state=AdminStates.upload_data, content_types=['document'])
 async def handle_document(message, state: StateContext):
-    if message.chat.id in ADMINS and message.document.mime_type == 'text/plain' and message.chat.type == 'private':
+   if message.chat.id in ADMINS and message.document.mime_type == 'text/plain' and message.chat.type == 'private':
+       try:
+           file_info = await bot.get_file(message.document.file_id)
+           downloaded_file = await bot.download_file(file_info.file_path)
 
-        try:
-            file_info = await bot.get_file(message.document.file_id)
-            downloaded_file = await bot.download_file(file_info.file_path)
+           async with aiofiles.open('uploaded_user_topics.txt', 'wb') as new_file:
+               await new_file.write(downloaded_file)
 
-            # Сохранение загруженного файла
-            async with aiofiles.open('uploaded_user_topics.txt', 'wb') as new_file:
-                await new_file.write(downloaded_file)
+           async with aiofiles.open('uploaded_user_topics.txt', 'r', encoding='utf-8') as file:
+               data = await file.read()
 
-            # Чтение файла как текста
-            async with aiofiles.open('uploaded_user_topics.txt', 'r', encoding='utf-8') as file:
-                data = await file.read()
+           lines = data.strip().split('\n')[1:]
+           data = '\n'.join(lines)
 
-            # Преобразование текста в DataFrame
-            df = pd.read_csv(StringIO(data), delimiter=' ')  # Предполагая, что данные разделены пробелом. Измените delimiter, если используются другие разделители.
+           df = await asyncio.to_thread(pd.read_csv, StringIO(data), delimiter=' ',
+                                      names=['chat_id', 'topic_id', 'user_name'])
+           df = df.drop_duplicates(subset=['chat_id', 'topic_id'])
 
-            async with aiosqlite.connect(db_path) as db:
-                await db.executemany('INSERT OR REPLACE INTO users (chat_id, topic_id, user_name) VALUES (?, ?, ?)',
-                                     df.values)
-                await db.commit()
+           async with aiosqlite.connect(db_path) as db:
+               await db.execute('DELETE FROM users')
+               await db.executemany('INSERT INTO users (chat_id, topic_id, user_name) VALUES (?, ?, ?)',
+                                  df.values)
+               await db.commit()
 
-            await bot.send_message(message.chat.id, "Данные успешно загружены.")
-        except Exception as e:
-            tb = traceback.extract_tb(e.__traceback__)
-            last_trace = tb[-1]
-            line_number = last_trace.lineno
-            line_content = last_trace.line
-            await bot.send_message(DEVELOPER_ID,
-                                   f"Ошибка при отправке документа администратором ({message.message_id}) строка {line_number}: {line_content} код ошибки: {e}")
-    else:
-        await bot.send_message(message.chat.id, "Пожалуйста, загрузите файл TXT.")
+           await bot.send_message(message.chat.id, "Данные успешно загружены.")
+           await state.delete()
+
+       except Exception as e:
+           await bot.send_message(message.chat.id, f"Ошибка при обработке файла: {str(e)}")
+   else:
+       await bot.send_message(message.chat.id, "Пожалуйста, загрузите файл TXT.")
 
 async def get_topic_id_by_chat_id(chat_id):
     db_main = await aiosqlite.connect(db_path)
@@ -290,7 +291,7 @@ async def handle_start(message, album: list = None, db=None, checker=None):
     if (is_photo_start):
         await bot.send_photo(message.chat.id, InputFile("main.png"), caption=welcome_message, parse_mode='HTML')
     else:
-        await bot.send_message(message.chat.id, welcome_message, parse_mode='HTML')
+        await bot.send_message(chat_id=message.chat.id, text=welcome_message, parse_mode='HTML', link_preview_options=LinkPreviewOptions(is_disabled=True))
 
 
 def formating(text: str | None,last_entities, new_entities, last_text):
@@ -389,23 +390,27 @@ def get_content_data(message):
             "file_id": message.photo[-1].file_id if message.content_type == "photo" else None,
             "send_function": bot.send_photo,
             "send_param": "photo",
+            "spoiler_param": "has_spoiler",
             "object": InputMediaPhoto
         },
         "document": {
             "file_id": message.document.file_id if message.content_type == "document" else None,
             "send_function": bot.send_document,
+            "spoiler_param": None,
             "send_param": "document",
             "object": InputMediaDocument
         },
         "video": {
             "file_id": message.video.file_id if message.content_type == "video" else None,
             "send_function": bot.send_video,
+            "spoiler_param": "has_spoiler",
             "send_param": "video",
             "object": InputMediaVideo
         },
         "audio": {
             "file_id": message.audio.file_id if message.content_type == "audio" else None,
             "send_function": bot.send_audio,
+            "spoiler_param": None,
             "send_param": "audio",
             "object": InputMediaAudio
         },
@@ -434,7 +439,6 @@ async def handle_edited_message(message, db=None):
             topic_message_id = await db.get_group_message_id_by_private_message(message.message_id)
             if message.content_type+"_caption_edit" in content_data:
                 data = content_data[message.content_type]
-                print(message.caption)
                 result_text, result_entities = caption_messages(message, True)
 
                 # Вызываем соответствующую функцию
@@ -587,14 +591,16 @@ async def private_messages(message, album: list = None, db=None):
 
 
                     # Вызываем соответствующую функцию
+
                     await db.add_message_to_db(await data["send_function"](
                         chat_id=GROUP_ID,
                         caption=result_text,
                         caption_entities=result_entities,
                         message_thread_id=topic_id,
-                        has_spoiler=message.has_media_spoiler,
+
                         reply_to_message_id = reply_message_id,
-                        **{data["send_param"]: data["file_id"]}
+                        **{str(data["send_param"]): data["file_id"]},
+                        **{str(data["spoiler_param"]): message.has_media_spoiler} if data["spoiler_param"] and data["spoiler_param"].lower() != "none" else {}
                     ),topic_id, None)
             elif(message.content_type == "text"):
                 result_text, result_entities = text_message_format(message)
@@ -676,7 +682,6 @@ async def main():
     setup_logging()
     while True:
         try:
-            print("работает")
             await asyncio.gather(bot.infinity_polling(allowed_updates=[
                 'message',
                 'edited_message',
@@ -690,7 +695,6 @@ async def main():
 
             time.sleep(5)
         except Exception as e:
-            print("ошибка")
             logging.error(f"An error occurred код ошибки: {e}", exc_info=True)
 async def checker():
     global weekend, latehour
@@ -771,8 +775,7 @@ def setup_logging():
     logging.basicConfig(level=logging.DEBUG, handlers=[error_handler, debug_handler])
 if __name__ == "__main__":
     rules_checker = [
-        {"type": "private", "timeout": timedelta(hours=1), "action": days_ping},
-        {"type": "group", "timeout": timedelta(hours=1), "action": setAlertIcon}
+        {"type": "private", "timeout": timedelta(hours=1), "action": days_ping}
     ]
     rules_checker.append({"type": "weekend", "day": 5} if is_weekend_have else {"type": "none"})
     rules_checker.append({"type": "weekend", "day": 6} if is_weekend_have else {"type": "none"})

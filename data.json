@@ -1,15 +1,6 @@
 {
   "bots": [
     {
-      "Folder_Name": "Mails",
-      "API_TOKEN": "7198233895:AAH6hy9BjXlFapBeaznXL-0isZlRI8npKN0",
-      "GROUP_CHAT_ID": "-1002072657872",
-      "IsCheckHours": false,
-      "IsCheckDays": false,
-      "IsPhotoStart": false,
-      "IsAutoResponse": true
-    },
-    {
       "Folder_Name": "OCPayPal1",
       "API_TOKEN": "7317645641:AAHj_E462Lz9hUakAb3etWX5j3IG1gnZqB4",
       "GROUP_CHAT_ID": "-1002221362102",
@@ -89,18 +80,7 @@
       "IsCheckHours": true,
       "IsCheckDays": true,
       "IsPhotoStart": true,
-      "IsAutoResponse": false,
-      "template_type": "hybrid"
-    },
-    {
-      "Folder_Name": "OCManagerSub",
-      "API_TOKEN": "7333675541:AAGXMninLIluPyXwNP5xqFo7rJP268tQ0Pc",
-      "GROUP_CHAT_ID": "-1002232646241",
-      "IsCheckHours": false,
-      "IsCheckDays": false,
-      "IsPhotoStart": true,
-      "IsAutoResponse": true,
-      "template_type": "subscription"
+      "IsAutoResponse": false
     },
     {
       "Folder_Name": "OCYoutube",

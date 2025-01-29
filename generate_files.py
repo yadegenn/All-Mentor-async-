@@ -10,7 +10,7 @@ output_folder = "output"
 middleware_folder = "middlewares"
 
 # Load data
-with open(data_file, 'r') as file:
+with open(data_file, 'r', encoding='utf-8') as file:  # Добавлено encoding='utf-8'
     data = json.load(file)
 
 # Configure Jinja2 environment
@@ -35,7 +35,7 @@ for bot in data['bots']:
     rendered_content = template.render(**bot)
 
     # Write the rendered content to main.py
-    with open(os.path.join(bot_output_folder, "main.py"), 'w') as main_file:
+    with open(os.path.join(bot_output_folder, "main.py"), 'w', encoding='utf-8') as main_file:  # Добавлено encoding='utf-8'
         main_file.write(rendered_content)
 
     # Copy middleware folder to the bot's output folder

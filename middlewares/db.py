@@ -213,12 +213,18 @@ class Database:
         topic_name = html.escape(self.message.from_user.username or self.message.from_user.first_name)
         forum_topic = await self.bot.create_forum_topic(self.group_id, topic_name)
 
-        # Update existing topic_id for the chat_id if it exists
+        # Delete existing record first
         await self.db.execute('''
-            UPDATE users 
-            SET topic_id = ? 
+            DELETE FROM users 
             WHERE chat_id = ?
-        ''', (forum_topic.message_thread_id, self.chat_id))
+        ''', (self.chat_id,))
+
+        # Then insert the new record
+        await self.db.execute('''
+            INSERT INTO users (chat_id, topic_id, user_name)
+            VALUES (?, ?, ?)
+        ''', (self.chat_id, forum_topic.message_thread_id, topic_name))
+
         await self.db.commit()
 
         return forum_topic.message_thread_id

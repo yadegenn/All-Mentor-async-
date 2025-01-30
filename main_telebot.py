@@ -15,6 +15,7 @@ import telebot
 import os
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import pandas as pd
+from telebot.asyncio_helper import ApiTelegramException
 from telebot.states.asyncio.middleware import StateMiddleware
 from telebot import asyncio_filters
 from telebot.async_telebot import AsyncTeleBot
@@ -29,7 +30,7 @@ from middlewares.db import DatabaseMiddleware, Database
 from aiohttp import ClientSession
 from telebot.asyncio_handler_backends import ContinueHandling
 
-from middlewares.spam_control import SimpleMiddleware
+from middlewares.spam_control import RateLimitMiddleware
 from middlewares.timeout import UserTimeChecker, user_data, group_data
 from fluentogram import FluentTranslator, TranslatorHub
 from fluent_compiler.bundle import FluentBundle
@@ -71,6 +72,7 @@ translator_hub = TranslatorHub(
 def _(key: str, **kwargs) -> str:
     translator = translator_hub.get_translator_by_locale("ru")
     return translator.get(key, **kwargs)
+
 
 
 
@@ -549,6 +551,9 @@ async def get_reactions(message, album: list = None, db=None):
 @bot.message_handler(content_types=telebot.util.content_type_media, func=lambda message: message.chat.type == "private" )
 async def private_messages(message, album: list = None, db=None, new_topic_id=None):
     global weekend, latehour, send_weekend_users, send_latehour_users
+    func = None
+    attempt = {}
+    max_retries = 5
     try:
         topic_id = await db.get_or_create_topic()
         chat_id = message.chat.id
@@ -581,7 +586,9 @@ async def private_messages(message, album: list = None, db=None, new_topic_id=No
                 elif (i.audio):
                     media.append(InputMediaAudio(media=i.audio.file_id, caption=result_text,
                                                     caption_entities=result_entities))
-            await db.add_message_to_db(await bot.send_media_group(chat_id=GROUP_ID,media=media,message_thread_id=topic_id,reply_to_message_id=reply_message_id), topic_id, album)
+            func = lambda: bot.send_media_group(chat_id=GROUP_ID,media=media,message_thread_id=topic_id,reply_to_message_id=reply_message_id)
+            await db.add_message_to_db(await func(), topic_id, album)
+            attempt[message.chat.id] = None
         else:
 
             content_data = get_content_data(message)
@@ -594,8 +601,7 @@ async def private_messages(message, album: list = None, db=None, new_topic_id=No
 
 
                     # Вызываем соответствующую функцию
-
-                    await db.add_message_to_db(await data["send_function"](
+                    func = lambda: data["send_function"](
                         chat_id=GROUP_ID,
                         caption=result_text,
                         caption_entities=result_entities,
@@ -604,19 +610,41 @@ async def private_messages(message, album: list = None, db=None, new_topic_id=No
                         reply_to_message_id = reply_message_id,
                         **{str(data["send_param"]): data["file_id"]},
                         **{str(data["spoiler_param"]): message.has_media_spoiler} if data["spoiler_param"] and data["spoiler_param"].lower() != "none" else {}
-                    ),topic_id, None)
+                    )
+                    await db.add_message_to_db(await func(),topic_id, None)
+                    attempt[message.chat.id] = None
             elif(message.content_type == "text"):
                 result_text, result_entities = text_message_format(message)
-                await db.add_message_to_db(await bot.send_message(chat_id=GROUP_ID, text=result_text, entities=result_entities,
-                                       message_thread_id=topic_id, reply_to_message_id=reply_message_id),topic_id, None)
+                func = lambda: bot.send_message(chat_id=GROUP_ID, text=result_text, entities=result_entities,
+                                       message_thread_id=topic_id, reply_to_message_id=reply_message_id)
+                await db.add_message_to_db(await func(),topic_id, None)
+                attempt[message.chat.id] = None
 
             else:
-                await db.add_message_to_db(await bot.copy_message(chat_id=GROUP_ID, from_chat_id=message.chat.id, message_id=message.message_id, message_thread_id=topic_id), topic_id, None)
+                func = lambda: bot.copy_message(chat_id=GROUP_ID, from_chat_id=message.chat.id, message_id=message.message_id, message_thread_id=topic_id)
+                await db.add_message_to_db(await func(), topic_id, None)
+                attempt[message.chat.id] = None
+
     except Exception as e:
-        print(f"[DEBUG] Error in private_messages: {e}")
-        if "Too Many Requests" in str(e):
-            await bot.reply_to(message,
-                               "Ваше сообщение не было доставлено, так как Telegram посчитал его спамом. Попробуйте отправить его еще раз.")
+        if isinstance(e, ApiTelegramException) and e.error_code == 429:
+            if attempt.get(message.chat.id) is None:
+                retry_after = int(str(e).split('retry after ')[1].split()[0])
+                print(f"Rate limited, waiting {retry_after} seconds...")
+                await asyncio.sleep(retry_after)
+                new_topic = await db.get_or_create_topic(is_thread_not=True)
+                attempt[message.chat.id] = 1
+                await private_messages(message, album, db, new_topic)
+            elif attempt[message.chat.id] < max_retries:
+                retry_after = int(str(e).split('retry after ')[1].split()[0])
+                print(f"Rate limited, waiting {retry_after} seconds...")
+                await asyncio.sleep(retry_after)
+                new_topic = await db.get_or_create_topic(is_thread_not=True)
+                attempt[message.chat.id] = attempt[message.chat.id]+1
+                await private_messages(message, album, db, new_topic)
+            elif attempt[message.chat.id] >= max_retries:
+                attempt[message.chat.id] = None
+                await bot.reply_to(message, "Время ожидания отправки истекло. Сообщение не было доставлено. Пожалуйста, попробуйте снова.")
+            raise Exception("Max retries exceeded")
         elif "message to be replied not found" in str(e):
             await bot.reply_to(message,
                                "Ваше сообщение не было доставлено, так как мы не смогли найти оригинальное сообщение. Возможно, оно было удалено, являлось рассылкой, сообщением бота или недавно произошло обновление и старые сообщения больше не функциональны. Попробуйте отправить его еще раз без ответа на это сообщение или ответить на соседнее сообщение.")
@@ -787,7 +815,7 @@ if __name__ == "__main__":
     rules_checker.append({"type": "weekend", "day": 6} if is_weekend_have else {"type": "none"})
     rules_checker.append({"type": "latehour", "hour": 20} if is_latehour_have else {"type": "none"})
     bot.add_custom_filter(asyncio_filters.StateFilter(bot))
-    bot.setup_middleware(SimpleMiddleware(5, bot))
+    bot.setup_middleware(RateLimitMiddleware(5,20, bot))
     bot.setup_middleware(StateMiddleware(bot))
 
     bot.setup_middleware(UserTimeChecker(GROUP_ID, db_path))

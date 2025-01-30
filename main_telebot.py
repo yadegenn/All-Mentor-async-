@@ -28,6 +28,8 @@ from middlewares.album import AlbumMiddleware
 from middlewares.db import DatabaseMiddleware, Database
 from aiohttp import ClientSession
 from telebot.asyncio_handler_backends import ContinueHandling
+
+from middlewares.spam_control import SimpleMiddleware
 from middlewares.timeout import UserTimeChecker, user_data, group_data
 from fluentogram import FluentTranslator, TranslatorHub
 from fluent_compiler.bundle import FluentBundle
@@ -548,9 +550,7 @@ async def get_reactions(message, album: list = None, db=None):
 async def private_messages(message, album: list = None, db=None, new_topic_id=None):
     global weekend, latehour, send_weekend_users, send_latehour_users
     try:
-        print(f"[DEBUG] Starting message processing")
         topic_id = await db.get_or_create_topic()
-        print(f"[DEBUG] Got topic_id: {topic_id}")
         chat_id = message.chat.id
         reply_message_id = None
 
@@ -621,11 +621,8 @@ async def private_messages(message, album: list = None, db=None, new_topic_id=No
             await bot.reply_to(message,
                                "Ваше сообщение не было доставлено, так как мы не смогли найти оригинальное сообщение. Возможно, оно было удалено, являлось рассылкой, сообщением бота или недавно произошло обновление и старые сообщения больше не функциональны. Попробуйте отправить его еще раз без ответа на это сообщение или ответить на соседнее сообщение.")
         elif "message thread not found" in str(e):
-            print("[DEBUG] Thread not found, recreating...")
-            print(f"{topic_id} - очистка")
             await db.delete_topic_messages(topic_id)
             new_topic = await db.get_or_create_topic(is_thread_not=True)
-            print(f"[DEBUG] Created new topic: {new_topic}")
             await private_messages(message,album,db, new_topic)
 
         else:
@@ -790,7 +787,9 @@ if __name__ == "__main__":
     rules_checker.append({"type": "weekend", "day": 6} if is_weekend_have else {"type": "none"})
     rules_checker.append({"type": "latehour", "hour": 20} if is_latehour_have else {"type": "none"})
     bot.add_custom_filter(asyncio_filters.StateFilter(bot))
+    bot.setup_middleware(SimpleMiddleware(5, bot))
     bot.setup_middleware(StateMiddleware(bot))
+
     bot.setup_middleware(UserTimeChecker(GROUP_ID, db_path))
     bot.setup_middleware(DatabaseMiddleware(db_path, bot,GROUP_ID))
     bot.setup_middleware(AlbumMiddleware())

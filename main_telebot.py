@@ -553,7 +553,7 @@ async def private_messages(message, album: list = None, db=None, new_topic_id=No
     global weekend, latehour, send_weekend_users, send_latehour_users
     func = None
     attempt = {}
-    max_retries = 5
+    max_retries = 2
     try:
         topic_id = await db.get_or_create_topic()
         chat_id = message.chat.id
@@ -629,14 +629,12 @@ async def private_messages(message, album: list = None, db=None, new_topic_id=No
         if isinstance(e, ApiTelegramException) and e.error_code == 429:
             if attempt.get(message.chat.id) is None:
                 retry_after = int(str(e).split('retry after ')[1].split()[0])
-                print(f"Rate limited, waiting {retry_after} seconds...")
                 await asyncio.sleep(retry_after)
                 new_topic = await db.get_or_create_topic(is_thread_not=True)
                 attempt[message.chat.id] = 1
                 await private_messages(message, album, db, new_topic)
             elif attempt[message.chat.id] < max_retries:
                 retry_after = int(str(e).split('retry after ')[1].split()[0])
-                print(f"Rate limited, waiting {retry_after} seconds...")
                 await asyncio.sleep(retry_after)
                 new_topic = await db.get_or_create_topic(is_thread_not=True)
                 attempt[message.chat.id] = attempt[message.chat.id]+1
@@ -813,9 +811,9 @@ if __name__ == "__main__":
     ]
     rules_checker.append({"type": "weekend", "day": 5} if is_weekend_have else {"type": "none"})
     rules_checker.append({"type": "weekend", "day": 6} if is_weekend_have else {"type": "none"})
-    rules_checker.append({"type": "latehour", "hour": 20} if is_latehour_have else {"type": "none"})
+    rules_checker.append({"type": "latehour", "hour": 19} if is_latehour_have else {"type": "none"})
     bot.add_custom_filter(asyncio_filters.StateFilter(bot))
-    bot.setup_middleware(RateLimitMiddleware(5,20, bot))
+    bot.setup_middleware(RateLimitMiddleware(5,40, bot))
     bot.setup_middleware(StateMiddleware(bot))
 
     bot.setup_middleware(UserTimeChecker(GROUP_ID, db_path))

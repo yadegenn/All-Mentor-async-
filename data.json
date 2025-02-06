@@ -7,7 +7,8 @@
       "IsCheckHours": true,
       "IsCheckDays": true,
       "IsPhotoStart": true,
-      "IsAutoResponse": false
+      "IsAutoResponse": false,
+      "template_type": "default"
     },
     {
       "Folder_Name": "OCPayPal2",
@@ -16,7 +17,8 @@
       "IsCheckHours": true,
       "IsCheckDays": true,
       "IsPhotoStart": true,
-      "IsAutoResponse": false
+      "IsAutoResponse": false,
+      "template_type": "default"
     },
     {
       "Folder_Name": "OCPayPal3",
@@ -25,7 +27,8 @@
       "IsCheckHours": true,
       "IsCheckDays": true,
       "IsPhotoStart": true,
-      "IsAutoResponse": false
+      "IsAutoResponse": false,
+      "template_type": "default"
     },
     {
       "Folder_Name": "OCPayPal4",
@@ -34,7 +37,8 @@
       "IsCheckHours": true,
       "IsCheckDays": true,
       "IsPhotoStart": true,
-      "IsAutoResponse": false
+      "IsAutoResponse": false,
+      "template_type": "default"
     },
     {
       "Folder_Name": "OCSub",
@@ -44,7 +48,7 @@
       "IsCheckDays": false,
       "IsPhotoStart": true,
       "IsAutoResponse": true,
-      "template_type": "subscription"
+      "template_type": "default"
     },
     {
       "Folder_Name": "outcast-support",
@@ -53,7 +57,8 @@
       "IsCheckHours": true,
       "IsCheckDays": true,
       "IsPhotoStart": false,
-      "IsAutoResponse": false
+      "IsAutoResponse": false,
+      "template_type": "default"
     },
     {
       "Folder_Name": "OCOther",
@@ -62,7 +67,8 @@
       "IsCheckHours": false,
       "IsCheckDays": false,
       "IsPhotoStart": true,
-      "IsAutoResponse": false
+      "IsAutoResponse": false,
+      "template_type": "default"
     },
     {
       "Folder_Name": "OCDirect",
@@ -71,7 +77,8 @@
       "IsCheckHours": true,
       "IsCheckDays": true,
       "IsPhotoStart": true,
-      "IsAutoResponse": false
+      "IsAutoResponse": false,
+      "template_type": "default"
     },
     {
       "Folder_Name": "OCTest",
@@ -80,7 +87,8 @@
       "IsCheckHours": true,
       "IsCheckDays": true,
       "IsPhotoStart": true,
-      "IsAutoResponse": false
+      "IsAutoResponse": false,
+      "template_type": "default"
     },
     {
       "Folder_Name": "OCYoutube",
@@ -89,7 +97,8 @@
       "IsCheckHours": true,
       "IsCheckDays": true,
       "IsPhotoStart": true,
-      "IsAutoResponse": false
+      "IsAutoResponse": false,
+      "template_type": "default"
     },
     {
       "Folder_Name": "PVTManager",
@@ -98,7 +107,32 @@
       "IsCheckHours": true,
       "IsCheckDays": true,
       "IsPhotoStart": false,
-      "IsAutoResponse": false
+      "IsAutoResponse": false,
+      "template_type": "default"
+    },
+    {
+      "Folder_Name": "OCSeo",
+      "API_TOKEN": "7589072897:AAHjJqh58UdFg_BZNV0LDqxuJvBK74SlLrM",
+      "GROUP_CHAT_ID": "-1002494741678",
+      "IsCheckHours": true,
+      "IsCheckDays": true,
+      "IsPhotoStart": true,
+      "IsAutoResponse": false,
+      "template_type": "Apps",
+      "template_path": "templates/template_app_seo.py.j2",
+      "port": 5001
+    },
+    {
+      "Folder_Name": "Mails",
+      "API_TOKEN": "7198233895:AAH6hy9BjXlFapBeaznXL-0isZlRI8npKN0",
+      "GROUP_CHAT_ID": "-1002072657872",
+      "IsCheckHours": true,
+      "IsCheckDays": true,
+      "IsPhotoStart": true,
+      "IsAutoResponse": false,
+      "template_type": "Apps",
+      "template_path": "templates/template_app_mails.py.j2",
+      "port": 5002
     }
   ]
 }

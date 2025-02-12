@@ -23,7 +23,8 @@ from telebot.asyncio_storage import StateMemoryStorage
 from telebot.states import StatesGroup, State
 from telebot.states.asyncio import StateContext
 from telebot.types import InputMediaPhoto, InputMediaVideo, InputMediaDocument, ReplyParameters, InlineKeyboardMarkup, \
-    InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton, InputFile, InputMediaAudio, LinkPreviewOptions
+    InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton, InputFile, InputMediaAudio, LinkPreviewOptions, \
+    InputMediaAnimation
 from telebot.types import MessageEntity
 from middlewares.album import AlbumMiddleware
 from middlewares.db import DatabaseMiddleware, Database
@@ -34,6 +35,11 @@ from middlewares.spam_control import RateLimitMiddleware
 from middlewares.timeout import UserTimeChecker, user_data, group_data
 from fluentogram import FluentTranslator, TranslatorHub
 from fluent_compiler.bundle import FluentBundle
+from quart import Quart, request, jsonify
+from quart_cors import cors
+from telebot.util import validate_web_app_data
+from hypercorn.asyncio import serve
+from hypercorn.config import Config
 
 # данные
 TOKEN = '6793024214:AAEk7_zBfBUbQfkByDSHAUauM-VPdSod6pg'
@@ -47,7 +53,7 @@ WORK_CHAT_FILE = f'{prefix_folder}work_chat.txt'
 DEVELOPER_ID = 5434361630
 ADMINS = [5434361630, 629454540, 612324246]
 is_weekend_have = False
-is_latehour_have = False
+is_latehour_have = True
 is_photo_start = True
 weekend = False
 latehour = False
@@ -301,7 +307,7 @@ async def handle_start(message, album: list = None, db=None, checker=None):
 
 def formating(text: str | None,last_entities, new_entities, last_text):
     if (last_text == None):
-        return None, None
+        last_text = ""
     count_text = len(text)
     if last_entities is not None:
 
@@ -419,17 +425,36 @@ def get_content_data(message):
             "send_param": "audio",
             "object": InputMediaAudio
         },
+        "animation": {
+            "file_id": message.animation.file_id if message.content_type == "animation" else None,
+            "send_function": bot.send_animation,
+            "spoiler_param": None,
+            "send_param": "animation",
+            "object": InputMediaAnimation
+        },
         "photo_caption_edit": {
-            "file_id": message.photo[-1].file_id if message.content_type == "photo" else None
+            "file_id": message.photo[-1].file_id if message.content_type == "photo" else None,
+            "show_sender_details": False
         },
         "video_caption_edit": {
-            "file_id": message.video.file_id if message.content_type == "video" else None
+            "file_id": message.video.file_id if message.content_type == "video" else None,
+            "show_sender_details": False
         },
         "document_caption_edit": {
-            "file_id": message.document.file_id if message.content_type == "document" else None
+            "file_id": message.document.file_id if message.content_type == "document" else None,
+            "show_sender_details": True
         },
         "audio_caption_edit": {
-            "file_id": message.document.file_id if message.content_type == "document" else None
+            "file_id": message.document.file_id if message.content_type == "document" else None,
+            "show_sender_details": True
+        },
+        "animation_caption_edit": {
+            "file_id": message.animation.file_id if message.content_type == "animation" else None,
+            "show_sender_details": True
+        },
+        "voice_caption_edit": {
+            "file_id": message.voice.file_id if message.content_type == "voice" else None,
+            "show_sender_details": True
         }
     }
 
@@ -443,34 +468,34 @@ async def handle_edited_message(message, db=None):
             content_data = get_content_data(message)
             topic_message_id = await db.get_group_message_id_by_private_message(message.message_id)
             if message.content_type+"_caption_edit" in content_data:
-                data = content_data[message.content_type]
+                data = content_data[message.content_type+"_caption_edit"]
                 result_text, result_entities = caption_messages(message, True)
 
                 # Вызываем соответствующую функцию
                 try:
                     await bot.edit_message_caption(
                         chat_id=GROUP_ID,
-                        caption=result_text,
-                        caption_entities=result_entities,
+                        caption=result_text if message.caption is not None else ("" if data["show_sender_details"]==False else result_text),
+                        caption_entities=result_entities if message.caption is not None else (None if data["show_sender_details"]==False else result_entities),
                         message_id=topic_message_id
                     )
                 except Exception as e:
                     if "specified new message content and reply markup are exactly the same as a current content and reply markup of the message" in str(e) and message.media_group_id:
                         await bot.reply_to(message, "Бот пока не поддерживает изменение медиа в альбоме")
-                if(data["file_id"] and message.media_group_id and message.caption == None):
-                    await bot.reply_to(message, "Бот пока не поддерживает изменение медиа в альбоме")
-                elif(data["file_id"] and message.media_group_id==None):
+                # if(data["file_id"] and message.media_group_id and message.caption == None):
+                #     print(message)
+                #     await bot.reply_to(message, "Бот пока не поддерживает изменение медиа в альбоме")
+                if(data["file_id"] and message.media_group_id==None):
                     await bot.edit_message_media(
                         chat_id=GROUP_ID,
-                        media=data["object"](data["file_id"], caption=result_text, caption_entities=result_entities),
+                        media=content_data[message.content_type]["object"](data["file_id"], caption=result_text, caption_entities=result_entities),
                         message_id=topic_message_id
                     )
             elif (message.content_type == "text"):
                 result_text, result_entities = text_message_format(message, True)
                 await bot.edit_message_text(chat_id=GROUP_ID, message_id=topic_message_id,text=result_text, entities=result_entities)
             else:
-                # редактирование всего остального
-                pass
+                print(message.content_type)
         elif message.chat.id == int(GROUP_ID):
             content_data = get_content_data(message)
             chat_id = await db.get_chat_id_by_topic_id()
@@ -519,6 +544,7 @@ async def handle_edited_message(message, db=None):
             mess = "чате с пользователем" if message.chat.id else "группе"
             await bot.send_message(DEVELOPER_ID,
                                    f"Ошибка при редактировании сообщения в {mess} ({message.message_id}) строка {line_number}: {line_content} код ошибки: {e}")
+
 @bot.message_reaction_handler(func=lambda message: True)
 async def get_reactions(message, album: list = None, db=None):
     try:
@@ -560,11 +586,11 @@ async def private_messages(message, album: list = None, db=None, new_topic_id=No
         reply_message_id = None
 
         # проверки
-        if(weekend and message.chat.id not in  send_weekend_users):
+        if(weekend and message.chat.id not in send_weekend_users):
             await bot.reply_to(message,"Сегодня вам могут не ответить, так как у сервиса выходной.")
             send_weekend_users.append(message.chat.id)
         if(latehour and message.chat.id not in send_latehour_users):
-            await bot.reply_to(message,"Сегодня вам уже могут не ответить, так как после 20:00 по московскому времени посредники не работают.")
+            await bot.reply_to(message,"Сегодня вам уже могут не ответить, так как после 19:00 по московскому времени посредники не работают.")
             send_latehour_users.append(message.chat.id)
 
 
@@ -578,14 +604,14 @@ async def private_messages(message, album: list = None, db=None, new_topic_id=No
             for i in album:
                 result_text, result_entities = caption_messages(i)
                 if (i.photo):
-                    media.append(InputMediaPhoto(media=i.photo[-1].file_id, caption=result_text, caption_entities=result_entities, has_spoiler=i.has_media_spoiler))
+                    media.append(InputMediaPhoto(media=i.photo[-1].file_id, caption=result_text if i.caption else i.caption, caption_entities=result_entities if i.caption else i.caption_entities, has_spoiler=i.has_media_spoiler))
                 elif(i.video):
-                    media.append(InputMediaVideo(media=i.video.file_id, caption=result_text, caption_entities=result_entities, has_spoiler=i.has_media_spoiler))
+                    media.append(InputMediaVideo(media=i.video.file_id, caption=result_text if i.caption else i.caption, caption_entities=result_entities if i.caption else i.caption_entities, has_spoiler=i.has_media_spoiler))
                 elif (i.document):
-                    media.append(InputMediaDocument(media=i.document.file_id, caption=result_text, caption_entities=result_entities))
+                    media.append(InputMediaDocument(media=i.document.file_id, caption=result_text if i.caption else i.caption, caption_entities=result_entities if i.caption else i.caption_entities))
                 elif (i.audio):
-                    media.append(InputMediaAudio(media=i.audio.file_id, caption=result_text,
-                                                    caption_entities=result_entities))
+                    media.append(InputMediaAudio(media=i.audio.file_id, caption=result_text if i.caption else i.caption,
+                                                    caption_entities=result_entities if i.caption else i.caption_entities))
             func = lambda: bot.send_media_group(chat_id=GROUP_ID,media=media,message_thread_id=topic_id,reply_to_message_id=reply_message_id)
             await db.add_message_to_db(await func(), topic_id, album)
             attempt[message.chat.id] = None
@@ -621,7 +647,8 @@ async def private_messages(message, album: list = None, db=None, new_topic_id=No
                 attempt[message.chat.id] = None
 
             else:
-                func = lambda: bot.copy_message(chat_id=GROUP_ID, from_chat_id=message.chat.id, message_id=message.message_id, message_thread_id=topic_id)
+                result_text, result_entities = caption_messages(message)
+                func = lambda: bot.copy_message(chat_id=GROUP_ID, caption=result_text, caption_entities=result_entities, from_chat_id=message.chat.id, reply_to_message_id=reply_message_id, message_id=message.message_id, message_thread_id=topic_id)
                 await db.add_message_to_db(await func(), topic_id, None)
                 attempt[message.chat.id] = None
 
@@ -725,7 +752,7 @@ async def main():
                 'chat_member'
             ]),scheduler_func())
 
-            time.sleep(5)
+            await asyncio.sleep(5)
         except Exception as e:
             logging.error(f"An error occurred код ошибки: {e}", exc_info=True)
 async def checker():
@@ -813,7 +840,7 @@ if __name__ == "__main__":
     rules_checker.append({"type": "weekend", "day": 6} if is_weekend_have else {"type": "none"})
     rules_checker.append({"type": "latehour", "hour": 19} if is_latehour_have else {"type": "none"})
     bot.add_custom_filter(asyncio_filters.StateFilter(bot))
-    bot.setup_middleware(RateLimitMiddleware(5,40, bot))
+    # bot.setup_middleware(RateLimitMiddleware(limit_messages=5,limit_albums=3,time_window=40, bot=bot))
     bot.setup_middleware(StateMiddleware(bot))
 
     bot.setup_middleware(UserTimeChecker(GROUP_ID, db_path))

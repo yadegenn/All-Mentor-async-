@@ -88,7 +88,6 @@ class Database:
 
     async def get_or_create_topic(self, is_thread_not = False) -> int:
         async with self._global_lock:
-            print(f"[DEBUG] Checking topic for chat_id {self.chat_id}")
 
             # Проверяем существующий топик
             async with self.db.execute(
@@ -99,31 +98,30 @@ class Database:
                 if row and row[0]:
                     try:
                         # Проверяем, существует ли топик в Telegram
-                        message = await self.bot.send_message(chat_id=self.group_id, text=".", message_thread_id=row[0])
-                        await asyncio.sleep(0.09)
-                        await self.bot.edit_message_text("..", message.chat.id, message.message_id)
-                        await asyncio.sleep(0.09)
-                        await self.bot.edit_message_text("...", message.chat.id, message.message_id)
-                        await self.bot.delete_message(message.chat.id, message.message_id)
-                        print(f"[DEBUG] Found existing valid topic: {row[0]}")
+                        user_name = html.escape(self.message.from_user.username or self.message.from_user.first_name)
+                        await self.bot.edit_forum_topic(self.group_id, row[0], user_name)
+                        # message = await self.bot.send_message(chat_id=self.group_id, text=".", message_thread_id=row[0])
+                        # await asyncio.sleep(0.09)
+                        # await self.bot.edit_message_text("..", message.chat.id, message.message_id)
+                        # await asyncio.sleep(0.09)
+                        # await self.bot.edit_message_text("...", message.chat.id, message.message_id)
+                        # await self.bot.delete_message(message.chat.id, message.message_id)
                         return row[0]
                     except Exception as e:
-                        if "message thread not found" in str(e):
-                            print(f"[DEBUG] Topic {row[0]} not found in Telegram, creating new one")
+                        if "TOPIC_ID_INVALID" in str(e):
                             # Если топик не существует в Telegram, удаляем его из базы
                             await self.delete_topic_messages(row[0])
                             await self.db.execute('DELETE FROM users WHERE chat_id = ?', (self.chat_id,))
                             await self.db.commit()
+                        elif "TOPIC_NOT_MODIFIED" in str(e):
+                            return row[0]
                         else:
                             raise
 
-            print("[DEBUG] Creating new topic")
             # Создаём новый топик
             topic_name = html.escape(self.message.from_user.username or self.message.from_user.first_name)
-            print(f"[DEBUG] Topic name: {topic_name}")
 
             forum_topic = await self.bot.create_forum_topic(self.group_id, topic_name)
-            print(f"[DEBUG] Created forum topic: {forum_topic.message_thread_id}")
 
             # Сохраняем новый топик в базу
             await self.db.execute('''
@@ -132,7 +130,6 @@ class Database:
             ''', (self.chat_id, forum_topic.message_thread_id, topic_name))
 
             await self.db.commit()
-            print(f"[DEBUG] Saved new topic {forum_topic.message_thread_id} to database")
             return forum_topic.message_thread_id
 
     async def add_message_to_db(self, new_message_id: MessageID | list[Message] | Message, topic_or_chat_id: int, album: list | None):
@@ -356,7 +353,6 @@ class Database:
         # Get chat_id associated with this topic
         async with self.db.execute('SELECT chat_id FROM users WHERE topic_id = ?', (topic_id,)) as cursor:
             row = await cursor.fetchone()
-            print(row)
             if row:
                 chat_id = row[0]
 

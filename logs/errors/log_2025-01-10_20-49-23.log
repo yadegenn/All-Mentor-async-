@@ -1,3 +1,0 @@
-2025-01-10 20:49:58,872 ERROR Aiohttp ClientError: ClientOSError
-2025-01-10 20:50:34,846 ERROR Infinity polling: polling exited
-2025-01-10 20:50:34,846 ERROR Break infinity polling

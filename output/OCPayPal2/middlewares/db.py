@@ -18,47 +18,15 @@ class User:
 
 
 class DatabaseMiddleware(BaseMiddleware):
-    def __init__(self, db_path: str, bot: AsyncTeleBot, group_id: int):
+    def __init__(self, db: aiosqlite.Connection, bot: AsyncTeleBot, group_id: int):
         super().__init__()
-        self.db_path = db_path
+        self.db = db
         self.update_types = ['message', "message_reaction", "edited_message"]
-        self.db = None
         self.bot = bot
         self.group_id = group_id
 
-    async def initialize_db(self):
-        self.db = await aiosqlite.connect(self.db_path)
-        await self.db.execute('PRAGMA foreign_keys = ON')
-        await self.db.execute('''
-            CREATE TABLE IF NOT EXISTS users (
-                chat_id INTEGER,
-                topic_id INTEGER,
-                user_name TEXT,
-                PRIMARY KEY (chat_id, topic_id)
-            )
-        ''')
-        await self.db.execute('''
-            CREATE TABLE IF NOT EXISTS group_messages (
-                topic_id INTEGER,
-                message_id INTEGER,
-                local_id INTEGER,
-                PRIMARY KEY (topic_id, local_id)
-            )
-        ''')
-        await self.db.execute('''
-            CREATE TABLE IF NOT EXISTS private_messages (
-                chat_id INTEGER,
-                message_id INTEGER,
-                local_id INTEGER,
-                PRIMARY KEY (chat_id, local_id)
-            )
-        ''')
-        await self.db.commit()
 
     async def pre_process(self, message, data):
-        if self.db is None:
-            await self.initialize_db()
-
         data['db'] = Database(self.db, self.bot, message, self.group_id)
 
     async def post_process(self, message, data, exception):

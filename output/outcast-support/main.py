@@ -3,7 +3,6 @@ import asyncio
 import copy
 import html
 import logging
-import time
 import traceback
 from datetime import timedelta, datetime
 from io import StringIO
@@ -22,24 +21,16 @@ from telebot.async_telebot import AsyncTeleBot
 from telebot.asyncio_storage import StateMemoryStorage
 from telebot.states import StatesGroup, State
 from telebot.states.asyncio import StateContext
-from telebot.types import InputMediaPhoto, InputMediaVideo, InputMediaDocument, ReplyParameters, InlineKeyboardMarkup, \
-    InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton, InputFile, InputMediaAudio, LinkPreviewOptions, \
+from telebot.types import InputMediaPhoto, InputMediaVideo, InputMediaDocument,  InlineKeyboardMarkup, \
+    InlineKeyboardButton,  InputFile, InputMediaAudio, LinkPreviewOptions, \
     InputMediaAnimation
 from telebot.types import MessageEntity
 from middlewares.album import AlbumMiddleware
-from middlewares.db import DatabaseMiddleware, Database
-from aiohttp import ClientSession
-from telebot.asyncio_handler_backends import ContinueHandling
+from middlewares.db import DatabaseMiddleware
 
-from middlewares.spam_control import RateLimitMiddleware
 from middlewares.timeout import UserTimeChecker, user_data, group_data
 from fluentogram import FluentTranslator, TranslatorHub
 from fluent_compiler.bundle import FluentBundle
-from quart import Quart, request, jsonify
-from quart_cors import cors
-from telebot.util import validate_web_app_data
-from hypercorn.asyncio import serve
-from hypercorn.config import Config
 
 # данные
 TOKEN = '7002888323:AAFB9LM03iZbqxmF80IV3YU3vJYaHFMgf5k'
@@ -60,7 +51,35 @@ latehour = False
 send_weekend_users = []
 send_latehour_users = []
 
-
+async def init_db(db_path):
+    db_object = await aiosqlite.connect(db_path)
+    await db_object.execute('PRAGMA foreign_keys = ON')
+    await db_object.execute('''
+        CREATE TABLE IF NOT EXISTS users (
+            chat_id INTEGER,
+            topic_id INTEGER,
+            user_name TEXT,
+            PRIMARY KEY (chat_id, topic_id)
+        )
+    ''')
+    await db_object.execute('''
+        CREATE TABLE IF NOT EXISTS group_messages (
+            topic_id INTEGER,
+            message_id INTEGER,
+            local_id INTEGER,
+            PRIMARY KEY (topic_id, local_id)
+        )
+    ''')
+    await db_object.execute('''
+        CREATE TABLE IF NOT EXISTS private_messages (
+            chat_id INTEGER,
+            message_id INTEGER,
+            local_id INTEGER,
+            PRIMARY KEY (chat_id, local_id)
+        )
+    ''')
+    await db_object.commit()
+    return db_object
 translator_hub = TranslatorHub(
     locales_map={
         "ru": "ru"
@@ -291,6 +310,7 @@ async def setAlertIcon(topic_id):
         pass
 async def days_ping(chat_id):
     await bot.send_message(chat_id, "Здравствуйте, чем могу помочь?")
+
 @bot.message_handler(commands=['start'])
 async def handle_start(message, album: list = None, db=None, checker=None):
     if db is None:
@@ -579,7 +599,6 @@ async def private_messages(message, album: list = None, db=None, new_topic_id=No
     global weekend, latehour, send_weekend_users, send_latehour_users
     func = None
     attempt = {}
-    max_retries = 2
     try:
         topic_id = await db.get_or_create_topic()
         chat_id = message.chat.id
@@ -589,9 +608,10 @@ async def private_messages(message, album: list = None, db=None, new_topic_id=No
         if(weekend and message.chat.id not in send_weekend_users):
             await bot.reply_to(message,"Сегодня вам могут не ответить, так как у сервиса выходной.")
             send_weekend_users.append(message.chat.id)
-        if(latehour and message.chat.id not in send_latehour_users):
-            await bot.reply_to(message,"Сегодня вам уже могут не ответить, так как после 19:00 по московскому времени посредники не работают.")
-            send_latehour_users.append(message.chat.id)
+        else:
+            if(latehour and message.chat.id not in send_latehour_users):
+                await bot.reply_to(message,"Сегодня вам уже могут не ответить, так как после 19:00 по московскому времени посредники не работают.")
+                send_latehour_users.append(message.chat.id)
 
 
         if (message.reply_to_message):
@@ -653,24 +673,7 @@ async def private_messages(message, album: list = None, db=None, new_topic_id=No
                 attempt[message.chat.id] = None
 
     except Exception as e:
-        if isinstance(e, ApiTelegramException) and e.error_code == 429:
-            if attempt.get(message.chat.id) is None:
-                retry_after = int(str(e).split('retry after ')[1].split()[0])
-                await asyncio.sleep(retry_after)
-                new_topic = await db.get_or_create_topic(is_thread_not=True)
-                attempt[message.chat.id] = 1
-                await private_messages(message, album, db, new_topic)
-            elif attempt[message.chat.id] < max_retries:
-                retry_after = int(str(e).split('retry after ')[1].split()[0])
-                await asyncio.sleep(retry_after)
-                new_topic = await db.get_or_create_topic(is_thread_not=True)
-                attempt[message.chat.id] = attempt[message.chat.id]+1
-                await private_messages(message, album, db, new_topic)
-            elif attempt[message.chat.id] >= max_retries:
-                attempt[message.chat.id] = None
-                await bot.reply_to(message, "Время ожидания отправки истекло. Сообщение не было доставлено. Пожалуйста, попробуйте снова.")
-            raise Exception("Max retries exceeded")
-        elif "message to be replied not found" in str(e):
+        if "message to be replied not found" in str(e):
             await bot.reply_to(message,
                                "Ваше сообщение не было доставлено, так как мы не смогли найти оригинальное сообщение. Возможно, оно было удалено, являлось рассылкой, сообщением бота или недавно произошло обновление и старые сообщения больше не функциональны. Попробуйте отправить его еще раз без ответа на это сообщение или ответить на соседнее сообщение.")
         elif "message thread not found" in str(e):
@@ -732,31 +735,8 @@ async def group_messages(message, album: list = None, db=None):
             await bot.send_message(DEVELOPER_ID,
                                    f"Ошибка при отправке сообщения от посредника в теме ({message.message_thread_id}) строка {line_number}: {line_content} код ошибки: {e}")
 
-async def scheduler_func():
-    scheduler.add_job(checker, "interval", seconds=5)
-    scheduler.start()
-# Запуск бота
-async def main():
-    print("Бот запущен!")
-    setup_logging()
-    while True:
-        try:
-            await asyncio.gather(bot.infinity_polling(allowed_updates=[
-                'message',
-                'edited_message',
-                'channel_post',
-                'edited_channel_post',
-                'message_reaction',
-                'message_reaction_count',
-                'callback_query',
-                'chat_member'
-            ]),scheduler_func())
-
-            await asyncio.sleep(5)
-        except Exception as e:
-            logging.error(f"An error occurred код ошибки: {e}", exc_info=True)
 async def checker():
-    global weekend, latehour
+    global weekend, latehour,rules_checker
     for i in rules_checker:
         rules = i
         rule_type = rules["type"]
@@ -832,7 +812,15 @@ def setup_logging():
 
     # Настройка основного логгера
     logging.basicConfig(level=logging.DEBUG, handlers=[error_handler, debug_handler])
-if __name__ == "__main__":
+
+scheduler.add_job(checker, "interval", seconds=5)
+
+# Запуск бота
+async def main():
+    global db_path
+    print("Бот запущен!")
+    setup_logging()
+    db_object = await init_db(db_path)
     rules_checker = [
         {"type": "private", "timeout": timedelta(hours=1), "action": days_ping}
     ]
@@ -842,8 +830,29 @@ if __name__ == "__main__":
     bot.add_custom_filter(asyncio_filters.StateFilter(bot))
     # bot.setup_middleware(RateLimitMiddleware(limit_messages=5,limit_albums=3,time_window=40, bot=bot))
     bot.setup_middleware(StateMiddleware(bot))
-
     bot.setup_middleware(UserTimeChecker(GROUP_ID, db_path))
-    bot.setup_middleware(DatabaseMiddleware(db_path, bot,GROUP_ID))
+    bot.setup_middleware(DatabaseMiddleware(db_object, bot, GROUP_ID))
     bot.setup_middleware(AlbumMiddleware())
+
+    while True:
+        try:
+            if scheduler.running == False:
+                scheduler.start()
+            await bot.infinity_polling(allowed_updates=[
+                'message',
+                'edited_message',
+                'channel_post',
+                'edited_channel_post',
+                'message_reaction',
+                'message_reaction_count',
+                'callback_query',
+                'chat_member'
+            ])
+        except Exception as e:
+            await db_object.close()
+            if scheduler.running:
+                scheduler.shutdown()
+
+
+if __name__ == "__main__":
     asyncio.run(main())

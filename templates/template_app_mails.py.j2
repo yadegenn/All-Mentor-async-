@@ -185,43 +185,56 @@ async def check_topic():
     except Exception as e:
         logging.error(f"Error in check_topic: {str(e)}")
         return jsonify({"error": str(e)}), 500
+
 async def main():
+    global db_path
     print("Бот и Quart сервер запущены!")
     setup_logging()
+    db_object = await init_db(db_path)
+    rules_checker = [
+        {"type": "private", "timeout": timedelta(hours=1), "action": days_ping}
+    ]
+    rules_checker.append({"type": "weekend", "day": 5} if is_weekend_have else {"type": "none"})
+    rules_checker.append({"type": "weekend", "day": 6} if is_weekend_have else {"type": "none"})
+    rules_checker.append({"type": "latehour", "hour": 19} if is_latehour_have else {"type": "none"})
+    bot.add_custom_filter(asyncio_filters.StateFilter(bot))
+    # bot.setup_middleware(RateLimitMiddleware(limit_messages=5,limit_albums=3,time_window=40, bot=bot))
+    bot.setup_middleware(StateMiddleware(bot))
+    bot.setup_middleware(UserTimeChecker(GROUP_ID, db_path))
+    bot.setup_middleware(DatabaseMiddleware(db_object, bot, GROUP_ID))
+    bot.setup_middleware(AlbumMiddleware())
+    while True:
+        try:
+            if scheduler.running == False:
+                scheduler.start()
+            config = Config()
+            config.bind = ["0.0.0.0:{{ port }}"]  # Изменен порт на 5002
 
-    scheduler.add_job(checker, "interval", seconds=5)
-    scheduler.start()
+            cert_path = "/etc/letsencrypt/live/shopoutcast.ru/fullchain.pem"
+            key_path = "/etc/letsencrypt/live/shopoutcast.ru/privkey.pem"
 
-    try:
+            if os.path.exists(cert_path) and os.path.exists(key_path):
+                print("Сертификаты найдены, запускаем с HTTPS")
+                config.certfile = cert_path
+                config.keyfile = key_path
+            else:
+                print("Сертификаты не найдены, запускаем без HTTPS")
 
-        config = Config()
-        config.bind = ["0.0.0.0:{{ port }}"]  # Изменен порт на 5002
+            bot_task = asyncio.create_task(bot.infinity_polling(allowed_updates=[
+                'message',
+                'edited_message',
+                'channel_post',
+                'edited_channel_post',
+                'message_reaction',
+                'message_reaction_count',
+                'callback_query',
+                'chat_member'
+            ]))
+            web_task = asyncio.create_task(serve(app, config))
+            await asyncio.gather(bot_task, web_task)
 
-        cert_path = "/etc/letsencrypt/live/shopoutcast.ru/fullchain.pem"
-        key_path = "/etc/letsencrypt/live/shopoutcast.ru/privkey.pem"
-
-        if os.path.exists(cert_path) and os.path.exists(key_path):
-            print("Сертификаты найдены, запускаем с HTTPS")
-            config.certfile = cert_path
-            config.keyfile = key_path
-        else:
-            print("Сертификаты не найдены, запускаем без HTTPS")
-
-        bot_task = asyncio.create_task(bot.infinity_polling(allowed_updates=[
-            'message',
-            'edited_message',
-            'channel_post',
-            'edited_channel_post',
-            'message_reaction',
-            'message_reaction_count',
-            'callback_query',
-            'chat_member'
-        ]))
-        web_task = asyncio.create_task(serve(app, config))
-        await asyncio.gather(bot_task, web_task)
-
-    except Exception as e:
-        logging.error(f"An error occurred код ошибки: {e}", exc_info=True)
-        print(f"Ошибка запуска: {e}")
-        await asyncio.sleep(5)
-        await main()
+        except Exception as e:
+            logging.error(f"An error occurred код ошибки: {e}", exc_info=True)
+            await db_object.close()
+            if scheduler.running:
+                scheduler.shutdown()

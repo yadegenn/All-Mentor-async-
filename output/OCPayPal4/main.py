@@ -31,7 +31,10 @@ from middlewares.db import DatabaseMiddleware
 from middlewares.timeout import UserTimeChecker, user_data, group_data
 from fluentogram import FluentTranslator, TranslatorHub
 from fluent_compiler.bundle import FluentBundle
-
+from quart import Quart, request, jsonify
+from quart_cors import cors
+from hypercorn.asyncio import serve
+from hypercorn.config import Config
 # данные
 TOKEN = '7098005146:AAFR03IN6vzY9ehJDu6U9WTJbzwrwGyPEak'
 state_storage = StateMemoryStorage()

@@ -53,6 +53,7 @@ weekend = False
 latehour = False
 send_weekend_users = []
 send_latehour_users = []
+conflicted_commands = ['/сalc','/card','/crypto',"/info","/silent"]
 
 async def init_db(db_path):
     db_object = await aiosqlite.connect(db_path)
@@ -326,7 +327,6 @@ async def handle_start(message, album: list = None, db=None, checker=None):
         await bot.send_photo(message.chat.id, InputFile(f"{prefix_folder}main.png"), caption=welcome_message, parse_mode='HTML')
     else:
         await bot.send_message(chat_id=message.chat.id, text=welcome_message, parse_mode='HTML', link_preview_options=LinkPreviewOptions(is_disabled=True))
-
 
 def formating(text: str | None,last_entities, new_entities, last_text):
     if (last_text == None):
@@ -718,7 +718,10 @@ async def group_messages(message, album: list = None, db=None):
                                                     caption_entities=i.caption_entities))
             await db.add_message_to_db(await bot.send_media_group(chat_id=chat_id,media=media, reply_to_message_id=reply_message_id), message.message_thread_id, album)
         else:
-            await db.add_message_to_db(await bot.copy_message(chat_id=chat_id, from_chat_id=message.chat.id, message_id=message.message_id, reply_to_message_id=reply_message_id), message.message_thread_id, None)
+            if(i in message.text for i in conflicted_commands):
+                pass
+            else:
+                await db.add_message_to_db(await bot.copy_message(chat_id=chat_id, from_chat_id=message.chat.id, message_id=message.message_id, reply_to_message_id=reply_message_id), message.message_thread_id, None)
     except Exception as e:
         if "Too Many Requests" in str(e):
             await bot.reply_to(message,

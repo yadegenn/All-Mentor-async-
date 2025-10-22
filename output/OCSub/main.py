@@ -53,7 +53,7 @@ weekend = False
 latehour = False
 send_weekend_users = []
 send_latehour_users = []
-conflicted_commands = ['/сalc','/card','/crypto',"/info","/silent"]
+conflicted_commands = ['/calc','/card','/crypto',"/info","/silent"]
 
 async def init_db(db_path):
     db_object = await aiosqlite.connect(db_path)
@@ -103,7 +103,12 @@ def _(key: str, **kwargs) -> str:
     return translator.get(key, **kwargs)
 
 
-
+def check_conflicted_commands(text):
+    is_conflict = False
+    for i in conflicted_commands:
+        if(i in str(text) or i==str(text)):
+            is_conflict = True
+    return is_conflict
 
 def load_work_chats():
     if os.path.exists(WORK_CHAT_FILE):
@@ -719,10 +724,12 @@ async def group_messages(message, album: list = None, db=None):
                                                     caption_entities=i.caption_entities))
             await db.add_message_to_db(await bot.send_media_group(chat_id=chat_id,media=media, reply_to_message_id=reply_message_id), message.message_thread_id, album)
         else:
-            if(i in message.text for i in conflicted_commands):
+            if(check_conflicted_commands(message.text)):
                 pass
             else:
-                await db.add_message_to_db(await bot.copy_message(chat_id=chat_id, from_chat_id=message.chat.id, message_id=message.message_id, reply_to_message_id=reply_message_id), message.message_thread_id, None)
+                await db.add_message_to_db(
+                    await bot.copy_message(chat_id=chat_id, from_chat_id=message.chat.id, message_id=message.message_id,
+                                           reply_to_message_id=reply_message_id), message.message_thread_id, None)
     except Exception as e:
         if "Too Many Requests" in str(e):
             await bot.reply_to(message,

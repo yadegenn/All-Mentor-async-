@@ -75,7 +75,10 @@ async def init_db(db_path):
         CREATE TABLE IF NOT EXISTS users (
             chat_id INTEGER,
             topic_id INTEGER,
-            user_name TEXT,
+            nickname TEXT,
+            username TEXT,
+            is_ban INTEGER DEFAULT 0,
+            reg_date DATETIME,
             PRIMARY KEY (chat_id, topic_id)
         )
     ''')
@@ -1133,7 +1136,6 @@ async def checker():
                     del user_data[i]
                 elif (isinstance(user_data[i], datetime)):
                     timeout_date = user_data[i] + rule_timeout
-                    print(timeout_date)
                     if (timeout_date <= datetime.now()):
                         await rule_action(i)
                         del user_data[i]

@@ -1,4 +1,5 @@
 import asyncio
+from datetime import datetime
 
 import aiosqlite
 from telebot.async_telebot import AsyncTeleBot
@@ -14,7 +15,10 @@ from telebot.types import Message, MessageID
 class User:
     chat_id: int
     topic_id: int
-    user_name: str
+    nickname: str
+    username: str
+    is_ban: bool
+    reg_date: datetime
 
 
 class DatabaseMiddleware(BaseMiddleware):
@@ -43,16 +47,16 @@ class Database:
         self.group_id = group_id
 
     async def get_all_users(self) -> List[User]:
-        async with self.db.execute('SELECT chat_id, topic_id, user_name FROM users') as cursor:
+        async with self.db.execute('SELECT chat_id, topic_id, nickname, username, is_ban, reg_date FROM users') as cursor:
             rows = await cursor.fetchall()
-            return [User(chat_id, topic_id, user_name) for chat_id, topic_id, user_name in rows]
+            return [User(chat_id, topic_id, nickname,username,is_ban,reg_date) for chat_id, topic_id, nickname,username,is_ban,reg_date  in rows]
 
-    async def add_or_update_user(self, user_name: str, topic_id: int):
-        await self.db.execute('''
-            INSERT OR REPLACE INTO users (chat_id, topic_id, user_name)
-            VALUES (?, ?, ?)
-        ''', (self.chat_id, topic_id, user_name))
-        await self.db.commit()
+    # async def add_or_update_user(self, user_name: str, topic_id: int):
+    #     await self.db.execute('''
+    #         INSERT OR REPLACE INTO users (chat_id, topic_id, user_name)
+    #         VALUES (?, ?, ?)
+    #     ''', (self.chat_id, topic_id, user_name))
+    #     await self.db.commit()
 
     async def get_or_create_topic(self, is_thread_not = False) -> int:
         async with self._global_lock:
@@ -86,12 +90,13 @@ class Database:
             topic_name = html.escape(self.message.from_user.username or self.message.from_user.first_name)
 
             forum_topic = await self.bot.create_forum_topic(self.group_id, topic_name)
-
+            nickname = html.escape(f"{self.message.from_user.first_name or ''} {self.message.from_user.last_name or ''}")
+            username = html.escape(f"{self.message.from_user.username or ''}")
             # Сохраняем новый топик в базу
             await self.db.execute('''
-                INSERT INTO users (chat_id, topic_id, user_name)
-                VALUES (?, ?, ?)
-            ''', (self.chat_id, forum_topic.message_thread_id, topic_name))
+                INSERT INTO users (chat_id, topic_id, nickname, username, reg_date)
+                VALUES (?, ?, ?, ?, ?)
+            ''', (self.chat_id, forum_topic.message_thread_id, nickname,username,datetime.now()))
 
             await self.db.commit()
             return forum_topic.message_thread_id
@@ -210,25 +215,25 @@ class Database:
 
         await self.db.commit()
 
-    async def create_new_topic(self) -> int:
-        topic_name = html.escape(self.message.from_user.username or self.message.from_user.first_name)
-        forum_topic = await self.bot.create_forum_topic(self.group_id, topic_name)
-
-        # Delete existing record first
-        await self.db.execute('''
-            DELETE FROM users 
-            WHERE chat_id = ?
-        ''', (self.chat_id,))
-
-        # Then insert the new record
-        await self.db.execute('''
-            INSERT INTO users (chat_id, topic_id, user_name)
-            VALUES (?, ?, ?)
-        ''', (self.chat_id, forum_topic.message_thread_id, topic_name))
-
-        await self.db.commit()
-
-        return forum_topic.message_thread_id
+    # async def create_new_topic(self) -> int:
+    #     topic_name = html.escape(self.message.from_user.username or self.message.from_user.first_name)
+    #     forum_topic = await self.bot.create_forum_topic(self.group_id, topic_name)
+    #
+    #     # Delete existing record first
+    #     await self.db.execute('''
+    #         DELETE FROM users
+    #         WHERE chat_id = ?
+    #     ''', (self.chat_id,))
+    #
+    #     # Then insert the new record
+    #     await self.db.execute('''
+    #         INSERT INTO users (chat_id, topic_id, user_name)
+    #         VALUES (?, ?, ?)
+    #     ''', (self.chat_id, forum_topic.message_thread_id, topic_name))
+    #
+    #     await self.db.commit()
+    #
+    #     return forum_topic.message_thread_id
 
     async def get_group_message_id_by_private_message(self, message_id: int) -> Optional[int]:
         topic_id = await self.get_topic_id_by_chat_id()

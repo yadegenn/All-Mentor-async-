@@ -66,8 +66,7 @@ class Database:
                 if row and row[0]:
                     try:
                         # Проверяем, существует ли топик в Telegram
-                        user_name = html.escape(self.message.from_user.username or self.message.from_user.first_name)
-                        await self.bot.edit_forum_topic(self.group_id, row[0], user_name)
+                        await self.bot.reopen_forum_topic(self.group_id, row[0])
                         # message = await self.bot.send_message(chat_id=self.group_id, text=".", message_thread_id=row[0])
                         # await asyncio.sleep(0.09)
                         # await self.bot.edit_message_text("..", message.chat.id, message.message_id)

@@ -67,10 +67,7 @@ class Database:
                     try:
                         # Проверяем, существует ли топик в Telegram
                         await self.bot.reopen_forum_topic(self.group_id, row[0])
-                        # message = await self.bot.send_message(chat_id=self.group_id, text=".", message_thread_id=row[0])
-                        # await asyncio.sleep(0.09)
-                        # await self.bot.edit_message_text("..", message.chat.id, message.message_id)
-                        # await asyncio.sleep(0.09)
+                        # user_name = html.escape(self.message.from_user.username or self.message.from_user.first_name)
                         # await self.bot.edit_message_text("...", message.chat.id, message.message_id)
                         # await self.bot.delete_message(message.chat.id, message.message_id)
                         return row[0]

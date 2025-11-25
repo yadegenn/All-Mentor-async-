@@ -2,6 +2,7 @@ import asyncio
 # TEST
 import copy
 import html
+import inspect
 import logging
 import traceback
 from datetime import timedelta, datetime
@@ -27,7 +28,10 @@ from telebot.types import InputMediaPhoto, InputMediaVideo, InputMediaDocument, 
 from telebot.types import MessageEntity
 from middlewares.album import AlbumMiddleware
 from middlewares.db import DatabaseMiddleware
-
+from decimal import ROUND_HALF_UP, Decimal
+from pathlib import Path
+from enum import StrEnum
+from orjson import loads
 from middlewares.timeout import UserTimeChecker, user_data, group_data
 from fluentogram import FluentTranslator, TranslatorHub
 from fluent_compiler.bundle import FluentBundle
@@ -47,7 +51,7 @@ socket.getaddrinfo = getaddrinfo_ipv4
 
 
 # данные
-TOKEN = '6793024214:AAEk7_zBfBUbQfkByDSHAUauM-VPdSod6pg'
+TOKEN = '8501698016:AAFxlwN5zYS1wefShLDC-mfx3EZQO8sSfwY'
 state_storage = StateMemoryStorage()
 bot = AsyncTeleBot(TOKEN, state_storage=state_storage)
 
@@ -57,7 +61,7 @@ prefix_folder = ""
 db_path = f"{prefix_folder}bot.db"
 WORK_CHAT_FILE = f'{prefix_folder}work_chat.txt'
 DEVELOPER_ID = 5434361630
-ADMINS = [5434361630, 629454540, 612324246]
+ADMINS = [5434361630,6929772573]
 is_weekend_have = False
 is_latehour_have = True
 is_photo_start = True
@@ -96,24 +100,27 @@ async def init_db(db_path):
     ''')
     await db_object.commit()
     return db_object
-translator_hub = TranslatorHub(
-    locales_map={
-        "ru": "ru"
-    },
-    translators=[
-        FluentTranslator(
-            locale="ru",
-            translator=FluentBundle.from_files(
-                locale="ru-RU", filenames=[f"{prefix_folder}locales/ru.ftl"]
-            )
-        ),
-    ],
-    root_locale="ru"
-)
+translator_hub = None
+def translator_create_or_update():
+    global translator_hub
+    translator_hub = TranslatorHub(
+        locales_map={
+            "ru": "ru"
+        },
+        translators=[
+            FluentTranslator(
+                locale="ru",
+                translator=FluentBundle.from_files(
+                    locale="ru-RU", filenames=[f"{prefix_folder}locales/ru.ftl"]
+                )
+            ),
+        ],
+        root_locale="ru"
+    )
+translator_create_or_update()
 def _(key: str, **kwargs) -> str:
     translator = translator_hub.get_translator_by_locale("ru")
     return translator.get(key, **kwargs)
-
 
 def check_conflicted_commands(text):
     is_conflict = False
@@ -135,6 +142,286 @@ async def save_work_chats(work_chats):
             await f.write('\n'.join(str(chat_id) for chat_id in work_chats))
     except Exception as e:
         print(f"Error saving work chats: {e}")
+
+
+
+@bot.message_handler(commands=['start'])
+async def handle_start(message, album: list = None, db=None, checker=None):
+    if db is None:
+        await bot.reply_to(message, "Ошибка подключения к базе данных ")
+        return
+    all_users = await db.get_all_users()
+    user_name = message.from_user.username or message.from_user.first_name
+
+    msg = await bot.send_photo(message.chat.id, _('start_message-file_id'), caption=_('start_message'), parse_mode='HTML')
+    await start_markup(message,msg.message_id)
+callback_datas_ui_faq = (
+    'faq-service_info',
+    'faq-payout_terms',
+    'faq-calc_info',
+    'faq-colab',
+    'faq-reviews_guarantees',
+    'faq-min_withdrawal',
+    'faq-transfer_screenshot',
+    'faq-hold_funds',
+    'faq-invoice_payment',
+    'faq-transfer_countries',
+    'faq-paypal_beatstars',
+    'faq-bs_wallet',
+    'faq-label_payment',
+    'faq-crypto_to_cash'
+)
+async def ui_faq(message,message_id,calldata=None):
+    markup = InlineKeyboardMarkup()
+    for i in callback_datas_ui_faq:
+        markup.add(InlineKeyboardButton(_(f'{i.split("-")[0]}-btn_{i.split("-")[1]}'), callback_data=f"{i}:"))
+    markup.add(InlineKeyboardButton(_("btn_back"),callback_data=f"back:{start_markup.__name__}"))
+    await bot.edit_message_media(InputMediaPhoto(_('faq-file_id'), _('txt_faq'), parse_mode="HTML"), message.chat.id,message_id, reply_markup=markup)
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith(callback_datas_ui_faq))
+async def callback_ui_faq(call):
+    parent = call.data.split(":")[0]
+    markup = InlineKeyboardMarkup()
+    markup.add(
+        InlineKeyboardButton(_('btn_back'), callback_data=f"back:{ui_faq.__name__}"))
+    await bot.edit_message_media(
+        InputMediaPhoto(_(f"{parent.split("-")[0]}-img_{parent.split("-")[1]}"), _(f"{parent.split("-")[0]}-txt_{parent.split("-")[1]}"), parse_mode="HTML"), call.message.chat.id,
+        call.message.message_id, reply_markup=markup)
+
+callback_datas_dashboard = ('faq', 'proceeds', 'link_site', 'monetization', 'subscription', 'support')
+async def start_markup(message,message_id,calldata=None):
+    func_name = inspect.currentframe().f_code.co_name
+    markup = InlineKeyboardMarkup()
+    for i in callback_datas_dashboard:
+        markup.add(InlineKeyboardButton(_(f'btn_{i}'), callback_data=f"{i}:", url= "https://t.me/GetAccessCreator_bot" if i=='subscription' else None))
+
+    await bot.edit_message_media(InputMediaPhoto(_('start_message-file_id'),_('start_message'),parse_mode="HTML"), message.chat.id,message_id, reply_markup=markup)
+
+
+
+callback_datas_proceeds = [
+    {
+        'name': 'PayPal',
+        'id': 'proceeds-paypal',
+        'btn_type': 'details'
+    },
+    {
+        'name': 'Cash App',
+        'id': 'proceeds-cash_app',
+        'btn_type': 'link'
+    },
+    {
+        'name': 'Apple pay',
+        'id': 'proceeds-apple_pay',
+        'btn_type': 'link'
+    },
+    {
+        'name': 'Venmo',
+        'id': 'proceeds-venmo',
+        'btn_type': 'link'
+    },
+    {
+        'name': 'Zelle',
+        'id': 'proceeds-zelle',
+        'btn_type': 'link'
+    },
+    {
+        'name': 'Card',
+        'id': 'proceeds-card',
+        'btn_type': 'link'
+    },
+]
+async def ui_proceeds(message,message_id,calldata=None):
+    markup = InlineKeyboardMarkup()
+    for i in callback_datas_proceeds:
+        markup.add(InlineKeyboardButton(_(f'{i['id'].split("-")[0]}-btn_{i['id'].split("-")[1]}'),callback_data=f"{i['id']}:"))
+    markup.add(InlineKeyboardButton(_("btn_back"), callback_data=f"back:{start_markup.__name__}"))
+    await bot.edit_message_media(InputMediaPhoto(_('img_proceeds'), _('txt_proceeds'), parse_mode="HTML"), message.chat.id,
+                                 message_id, reply_markup=markup)
+
+async def ui_callback_ui_proceeds(message,message_id,calldata=None):
+    parent = f"{calldata.split(":")[0].split("-")[0]}-{calldata.split(":")[0].split("-")[1]}"
+    btn_type = next((i['btn_type'] for i in callback_datas_proceeds if i['id'] == parent), None)
+    name = next((i['name'] for i in callback_datas_proceeds if i['id'] == parent), None)
+    markup = InlineKeyboardMarkup()
+    markup.add(
+        InlineKeyboardButton(_(f'{parent}-btn_payment_{btn_type}'), callback_data=f"{parent}-payment_{btn_type}"))
+    markup.add(
+        InlineKeyboardButton(_('btn_back'), callback_data=f"back:{ui_proceeds.__name__}"))
+
+    await bot.edit_message_media(
+        InputMediaPhoto(_(f"{parent.split("-")[0]}-img_{parent.split("-")[1]}"),
+                        _(f"{parent.split("-")[0]}-txt_{parent.split("-")[1]}",payment_method=name),
+                        parse_mode="HTML"), message.chat.id,
+        message.message_id, reply_markup=markup)
+
+
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith(tuple(f'{i['id']}-payment_{i['btn_type']}' for i in callback_datas_proceeds)))
+async def callback_payment_type(call):
+    parent = call.data.split(":")[0]
+    parent_id = f"{call.data.split(":")[0].split("-")[0]}-{call.data.split(":")[0].split("-")[1]}"
+
+    name = next((i['name'] for i in callback_datas_proceeds if i['id']==parent_id), None)
+    btn_type = next((i['btn_type'] for i in callback_datas_proceeds if i['id'] == parent_id), None)
+    markup = InlineKeyboardMarkup()
+    markup.add(
+        InlineKeyboardButton(_('btn_back'), callback_data=f"back:{parent}:{ui_callback_ui_proceeds.__name__}"))
+    if(btn_type=="details"):
+        await bot.edit_message_media(
+            InputMediaPhoto(_(f"{parent.split("-")[0]}-{parent.split("-")[1]}-img_{parent.split("-")[2]}"), _(f"{parent.split("-")[0]}-{parent.split("-")[1]}-txt_{parent.split("-")[2]}"), parse_mode="HTML"), call.message.chat.id,
+            call.message.message_id, reply_markup=markup)
+    else:
+        await bot.edit_message_media(
+            InputMediaPhoto(_(f"{parent.split("-")[0]}-{parent.split("-")[1]}-img_{parent.split("-")[2]}"), _(f"{parent.split("-")[0]}-{parent.split("-")[1]}-txt_{parent.split("-")[2]}",payment_method=name), parse_mode="HTML"), call.message.chat.id,
+            call.message.message_id, reply_markup=markup)
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith(tuple(i['id'] for i in callback_datas_proceeds)))
+async def callback_ui_proceeds(call):
+    await ui_callback_ui_proceeds(call.message,call.message.message_id, call.data)
+
+
+
+callback_datas_link_site = [
+    {
+        'id': 'link_site-paypal_bs_sales',
+        'id_inside_button': 'link_site-paypal_bs_sales-link_paypal'
+    },
+    {
+        'id': 'link_site-bs_wallet_withdraw',
+        'id_inside_button': 'link_site-bs_wallet_withdraw-instruction'
+    },
+    {
+        'id': 'link_site-other_sites_services',
+        'id_inside_button': 'link_site-other_sites_services-link_paypal'
+    },
+]
+async def ui_link_site(message,message_id,callback=None):
+    markup = InlineKeyboardMarkup()
+    for i in callback_datas_link_site:
+        markup.add(InlineKeyboardButton(_(f'{i['id'].split("-")[0]}-btn_{i['id'].split("-")[1]}'), callback_data=f"{i['id']}:"))
+    markup.add(InlineKeyboardButton(_("btn_back"),callback_data=f"back:{start_markup.__name__}"))
+    await bot.edit_message_media(InputMediaPhoto(_('img_link_site'), _('txt_link_site'), parse_mode="HTML"), message.chat.id,message_id, reply_markup=markup)
+
+async def ui_callback_ui_link_site(message,message_id,calldata=None):
+    parent = None
+    if(calldata.split(":")[0].isdigit()):
+        parent = callback_datas_link_site[int(calldata.split(":")[0])]['id']
+    else:
+        parent = f"{calldata.split(":")[0].split("-")[0]}-{calldata.split(":")[0].split("-")[1]}"
+    id_inside_button = next((i['id_inside_button'] for i in callback_datas_link_site if i['id'] == parent), None)
+    markup = InlineKeyboardMarkup()
+    markup.add(
+        InlineKeyboardButton(_(f'{"-".join(id_inside_button.split("-")[:-1])}-btn_{id_inside_button.split("-")[-1]}'), callback_data=f"{id_inside_button}:"))
+    markup.add(
+        InlineKeyboardButton(_('btn_back'), callback_data=f"back:{ui_link_site.__name__}"))
+
+    await bot.edit_message_media(
+        InputMediaPhoto(_(f"{parent.split("-")[0]}-img_{parent.split("-")[1]}"),
+                        _(f"{parent.split("-")[0]}-txt_{parent.split("-")[1]}"),
+                        parse_mode="HTML"), message.chat.id,
+        message.message_id, reply_markup=markup)
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith(tuple(i['id_inside_button'] for i in callback_datas_link_site)))
+async def callback_link_type(call):
+    parent = call.data.split(":")[0]
+    parent_id = f"{"-".join(call.data.split(":")[0].split("-")[:-1])}"
+    id = [i["id"] for i in callback_datas_link_site].index(parent_id)
+    markup = InlineKeyboardMarkup()
+    markup.add(
+        InlineKeyboardButton(_('btn_back'), callback_data=f"back:{id}:{ui_callback_ui_link_site.__name__}"))
+    await bot.edit_message_media(
+        InputMediaPhoto(_(f"{parent_id}-img_{parent.split("-")[-1]}"),
+                        _(f"{parent_id}-txt_{parent.split("-")[-1]}"),
+                        parse_mode="HTML"), call.message.chat.id,
+        call.message.message_id, reply_markup=markup)
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith(tuple(i['id'] for i in callback_datas_link_site)))
+async def callback_ui_link_site(call):
+    await ui_callback_ui_link_site(call.message,call.message.message_id, call.data)
+
+callback_datas_monetization = [
+    {
+        'id': 'monetization-youtube',
+        'id_inside_button': 'monetization-youtube-link_adsense'
+    },
+    {
+        'id': 'monetization-tiktok',
+        'id_inside_button': 'monetization-tiktok-link_tiktok'
+    },
+]
+async def ui_monetization(message,message_id, calldata=None):
+    markup = InlineKeyboardMarkup()
+    for i in callback_datas_monetization:
+        markup.add(InlineKeyboardButton(_(f'{i['id'].split("-")[0]}-btn_{i['id'].split("-")[1]}'), callback_data=f"{i['id']}:"))
+    markup.add(InlineKeyboardButton(_("btn_back"),callback_data=f"back:{start_markup.__name__}"))
+    await bot.edit_message_media(InputMediaPhoto(_('img_monetization'), _('txt_monetization'), parse_mode="HTML"), message.chat.id,message_id, reply_markup=markup)
+
+
+async def ui_callback_ui_monetization(message,message_id,calldata=None):
+    parent = None
+    if(calldata.split(":")[0].isdigit()):
+        parent = callback_datas_monetization[int(calldata.split(":")[0])]['id']
+    else:
+        parent = f"{calldata.split(":")[0].split("-")[0]}-{calldata.split(":")[0].split("-")[1]}"
+    id_inside_button = next((i['id_inside_button'] for i in callback_datas_monetization if i['id'] == parent), None)
+    markup = InlineKeyboardMarkup()
+    markup.add(
+        InlineKeyboardButton(_(f'{"-".join(id_inside_button.split("-")[:-1])}-btn_{id_inside_button.split("-")[-1]}'), callback_data=f"{id_inside_button}:"))
+    markup.add(
+        InlineKeyboardButton(_('btn_back'), callback_data=f"back:{ui_monetization.__name__}"))
+
+    await bot.edit_message_media(
+        InputMediaPhoto(_(f"{parent.split("-")[0]}-img_{parent.split("-")[1]}"),
+                        _(f"{parent.split("-")[0]}-txt_{parent.split("-")[1]}"),
+                        parse_mode="HTML"), message.chat.id,
+        message.message_id, reply_markup=markup)
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith(tuple(i['id_inside_button'] for i in callback_datas_monetization)))
+async def callback_monetization_type(call):
+    parent = call.data.split(":")[0]
+    parent_id = f"{"-".join(call.data.split(":")[0].split("-")[:-1])}"
+    id = [i["id"] for i in callback_datas_monetization].index(parent_id)
+    markup = InlineKeyboardMarkup()
+    markup.add(
+        InlineKeyboardButton(_('btn_back'), callback_data=f"back:{id}:{ui_callback_ui_monetization.__name__}"))
+    await bot.edit_message_media(
+        InputMediaPhoto(_(f"{parent_id}-img_{parent.split("-")[-1]}"),
+                        _(f"{parent_id}-txt_{parent.split("-")[-1]}"),
+                        parse_mode="HTML"), call.message.chat.id,
+        call.message.message_id, reply_markup=markup)
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith(tuple(i['id'] for i in callback_datas_monetization)))
+async def callback_ui_monetization(call):
+    await ui_callback_ui_monetization(call.message,call.message.message_id, call.data)
+
+
+async def ui_support(message,message_id, calldata=None):
+    markup = InlineKeyboardMarkup()
+    markup.add(InlineKeyboardButton(_("btn_back"),callback_data=f"back:{start_markup.__name__}"))
+    await bot.edit_message_media(InputMediaPhoto(_('img_support'), _('txt_support'), parse_mode="HTML"), message.chat.id,message_id, reply_markup=markup)
+
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith(callback_datas_dashboard))
+async def callback_dashboard(call):
+    if call.data.startswith(callback_datas_dashboard[0]):
+        await ui_faq(call.message, call.message.message_id)
+    elif call.data.startswith(callback_datas_dashboard[1]):
+        await ui_proceeds(call.message, call.message.message_id)
+    elif call.data.startswith(callback_datas_dashboard[2]):
+        await ui_link_site(call.message, call.message.message_id)
+    elif call.data.startswith(callback_datas_dashboard[3]):
+        await ui_monetization(call.message, call.message.message_id)
+    elif call.data.startswith(callback_datas_dashboard[5]):
+        await ui_support(call.message, call.message.message_id)
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith("back"))
+async def back(call):
+    back_func = call.data.split(":")[-1]
+    if(len(call.data.split(":"))>2):
+        await globals()[back_func](call.message, call.message.message_id, ":".join(call.data.split(":")[1:]))
+    else:
+        await globals()[back_func](call.message, call.message.message_id, call.data)
 
 work_chats = load_work_chats()
 @bot.message_handler(commands=['remove_work_chat'])
@@ -176,6 +463,7 @@ async def handle_add_work_chat(message):
 
 class AdminStates(StatesGroup):
     upload_data = State()
+    upload_front = State()
     spam = State()
 
 
@@ -188,16 +476,36 @@ async def handle_admin(message):
             row = await cursor.fetchone()
             if(row):
                 user_count = row[0]
-        markup = InlineKeyboardMarkup()
-        markup.add(InlineKeyboardButton("Получить данные", callback_data="get_data"))
-        markup.add(InlineKeyboardButton("Загрузить данные", callback_data="upload_data"))
-        markup.add(InlineKeyboardButton("Рассылка", callback_data="broadcast"))
+        markup = InlineKeyboardMarkup(
+            [
+                [
+                    InlineKeyboardButton("Данные:", callback_data="front"),
+                ],
+                [
+                    InlineKeyboardButton("Получить", callback_data="get_data"),
+                    InlineKeyboardButton("Загрузить", callback_data="upload_data")
+                ],
+                [
+                    InlineKeyboardButton("Разметка:",callback_data="front"),
+                ],
+                [
+                    InlineKeyboardButton("Получить", callback_data="get_front"),
+                    InlineKeyboardButton("Загрузить", callback_data="upload_front"),
+                    InlineKeyboardButton("Откатить", callback_data="last_front")
+                ],
+                [
+                    InlineKeyboardButton("Рассылка", callback_data="broadcast")
+                ]
+            ],
+            3
+        )
+
         await bot.send_message(message.chat.id, f"Админ панель\nКоличество пользователей: {user_count}", reply_markup=markup)
     else:
         await bot.send_message(message.chat.id, "У вас нет доступа к этой команде.")
 
 
-@bot.callback_query_handler(func=lambda call: call.data in ["get_data", "upload_data", "broadcast"])
+@bot.callback_query_handler(func=lambda call: call.data in ["get_data", "get_front", "last_front", "upload_data","upload_front", "broadcast"])
 async def handle_admin_callback(call, state: StateContext):
     if call.message.chat.id in ADMINS:
         if call.data == "get_data":
@@ -214,16 +522,68 @@ async def handle_admin_callback(call, state: StateContext):
             # Отправка файла пользователю
             with open('user_topics.txt', 'rb') as file:
                 await bot.send_document(call.message.chat.id, file)
-
+        elif call.data == "get_front":
+            with open(f'{prefix_folder}locales/ru.ftl', 'rb') as file:
+                await bot.send_document(call.message.chat.id, file)
         elif call.data == "upload_data":
-            await bot.send_message(call.message.chat.id, "Пожалуйста, загрузите файл CSV с данными.")
+            await bot.send_message(call.message.chat.id, "Пожалуйста, загрузите файл txt с данными.")
             await state.set(AdminStates.upload_data)
+        elif call.data == "upload_front":
+            await bot.send_message(call.message.chat.id, "Пожалуйста, загрузите файл ftl с разметкой.")
+            await state.set(AdminStates.upload_front)
+        elif call.data == "last_front":
+            async with aiofiles.open(f'{prefix_folder}locales/last_ru.ftl', 'r', encoding='utf-8') as file:
+                data = await file.read()
 
+            async with aiofiles.open(f'{prefix_folder}locales/ru.ftl', 'w') as new_file:
+                await new_file.write(data)
+            translator_create_or_update()
+            await bot.send_message(call.message.chat.id, "Разметка успешно откатилась.")
         elif call.data == "broadcast":
             await bot.send_message(call.message.chat.id, "Отправьте сообщение и оно будет разослано")
             await state.set(AdminStates.spam)
     else:
         await bot.send_message(call.message.chat.id, "У вас нет доступа к этой функции.")
+
+@bot.message_handler(state=AdminStates.upload_front, content_types=['document'])
+async def handle_front(message, state: StateContext):
+   if message.chat.id in ADMINS and message.document.mime_type == 'text/plain' and message.document.file_name.endswith(".ftl") and message.chat.type == 'private':
+       try:
+           file_info = await bot.get_file(message.document.file_id)
+           downloaded_file = await bot.download_file(file_info.file_path)
+
+           async with aiofiles.open(f'{prefix_folder}locales/ru.ftl', 'r', encoding='utf-8') as file:
+               data = await file.read()
+
+           async with aiofiles.open(f'{prefix_folder}locales/last_ru.ftl', 'w') as new_file:
+               await new_file.write(data)
+
+           async with aiofiles.open(f'{prefix_folder}locales/ru.ftl', 'wb') as new_file:
+               await new_file.write(downloaded_file)
+           # async with aiofiles.open('uploaded_user_topics.txt', 'r', encoding='utf-8') as file:
+           #     data = await file.read()
+           #
+           # lines = data.strip().split('\n')[1:]
+           # data = '\n'.join(lines)
+           #
+           # df = await asyncio.to_thread(pd.read_csv, StringIO(data), delimiter=' ',
+           #                            names=['chat_id', 'topic_id', 'user_name'])
+           # df = df.drop_duplicates(subset=['chat_id', 'topic_id'])
+           #
+           # async with aiosqlite.connect(db_path) as db:
+           #     await db.execute('DELETE FROM users')
+           #     await db.executemany('INSERT INTO users (chat_id, topic_id, user_name) VALUES (?, ?, ?)',
+           #                        df.values)
+           #     await db.commit()
+           #
+           await bot.send_message(message.chat.id, "Разметка успешно обновлена.")
+           translator_create_or_update()
+           await state.delete()
+
+       except Exception as e:
+           await bot.send_message(message.chat.id, f"Ошибка при обработке файла: {str(e)}")
+   else:
+       await bot.send_message(message.chat.id, "Пожалуйста, загрузите файл ftl.")
 
 @bot.message_handler(state=AdminStates.spam, content_types=telebot.util.content_type_media, func=lambda message: message.chat.type == "private" and message.chat.id in ADMINS)
 async def spam(message, state: StateContext, album=None, db=None):
@@ -332,18 +692,6 @@ async def setAlertIcon(topic_id):
 async def days_ping(chat_id):
     await bot.send_message(chat_id, "Здравствуйте, чем могу помочь?")
 
-@bot.message_handler(commands=['start'])
-async def handle_start(message, album: list = None, db=None, checker=None):
-    if db is None:
-        await bot.reply_to(message, "Ошибка подключения к базе данных ")
-        return
-    all_users = await db.get_all_users()
-    user_name = message.from_user.username or message.from_user.first_name
-    welcome_message = _('start-message', name=user_name)
-    if (is_photo_start):
-        await bot.send_photo(message.chat.id, InputFile(f"{prefix_folder}main.png"), caption=welcome_message, parse_mode='HTML')
-    else:
-        await bot.send_message(chat_id=message.chat.id, text=welcome_message, parse_mode='HTML', link_preview_options=LinkPreviewOptions(is_disabled=True))
 
 def formating(text: str | None,last_entities, new_entities, last_text):
     if (last_text == None):
@@ -502,7 +850,7 @@ def get_content_data(message):
 
 
 @bot.edited_message_handler(content_types=telebot.util.content_type_media)
-async def handle_edited_message(message, db=None):
+async def edited_message(message, db=None):
     try:
         if message.chat.type == 'private':
             content_data = get_content_data(message)
@@ -760,12 +1108,7 @@ async def group_messages(message, album: list = None, db=None):
             line_content = last_trace.line
             await bot.send_message(DEVELOPER_ID,
                                    f"Ошибка при отправке сообщения от посредника в теме ({message.message_thread_id}) строка {line_number}: {line_content} код ошибки: {e}")
-rules_checker = [
-    # {"type": "private", "timeout": timedelta(hours=1), "action": days_ping}
-]
-rules_checker.append({"type": "weekend", "day": 5} if is_weekend_have else {"type": "none"})
-rules_checker.append({"type": "weekend", "day": 6} if is_weekend_have else {"type": "none"})
-rules_checker.append({"type": "latehour", "hour": 19} if is_latehour_have else {"type": "none"})
+
 async def checker():
     global weekend, latehour,rules_checker
     for i in rules_checker:
@@ -820,7 +1163,12 @@ async def main():
     print("Бот запущен!")
     setup_logging()
     db_object = await init_db(db_path)
-
+    rules_checker = [
+        {"type": "private", "timeout": timedelta(hours=1), "action": days_ping}
+    ]
+    rules_checker.append({"type": "weekend", "day": 5} if is_weekend_have else {"type": "none"})
+    rules_checker.append({"type": "weekend", "day": 6} if is_weekend_have else {"type": "none"})
+    rules_checker.append({"type": "latehour", "hour": 19} if is_latehour_have else {"type": "none"})
     bot.add_custom_filter(asyncio_filters.StateFilter(bot))
     # bot.setup_middleware(RateLimitMiddleware(limit_messages=5,limit_albums=3,time_window=40, bot=bot))
     bot.setup_middleware(StateMiddleware(bot))

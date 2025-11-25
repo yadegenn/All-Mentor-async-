@@ -43,7 +43,11 @@ def find_function_boundaries(content, func_name):
 
 # Process each bot configuration
 for bot in data['bots']:
-    folder_name = bot['Folder_Name']
+    folder_name = None
+    if "parasite" in bot['Folder_Name']:
+        folder_name = bot['Folder_Name'].split("parasite")[0]
+    else:
+        folder_name = bot['Folder_Name']
     bot_output_folder = os.path.join(output_folder, folder_name)
 
     # Create bot-specific output directory

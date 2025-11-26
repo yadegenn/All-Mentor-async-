@@ -3,10 +3,15 @@ import asyncio
 import copy
 import html
 import inspect
+import json
 import logging
 import traceback
-from datetime import timedelta, datetime
+from datetime import timedelta, datetime, timezone
+from decimal import Decimal, ROUND_HALF_UP
+
 from io import StringIO
+from pathlib import Path
+from zoneinfo import ZoneInfo
 
 import aiofiles
 import aiosqlite
@@ -27,7 +32,10 @@ from telebot.types import InputMediaPhoto, InputMediaVideo, InputMediaDocument, 
     InputMediaAnimation
 from telebot.types import MessageEntity
 from middlewares.album import AlbumMiddleware
+from middlewares.ban import BanMiddleware
 from middlewares.db import DatabaseMiddleware
+from middlewares.silent import SilentMiddleware
+from middlewares.silent import silent_users
 
 from middlewares.timeout import UserTimeChecker, user_data, group_data
 from fluentogram import FluentTranslator, TranslatorHub
@@ -39,6 +47,10 @@ from hypercorn.config import Config
 
 # убираем ipv6
 import socket
+
+from utils.calc import update_rates
+from utils.db import init_db
+
 orig_getaddrinfo = socket.getaddrinfo
 
 def getaddrinfo_ipv4(host, port, family=0, type=0, proto=0, flags=0):
@@ -51,7 +63,6 @@ socket.getaddrinfo = getaddrinfo_ipv4
 TOKEN = '8501698016:AAFxlwN5zYS1wefShLDC-mfx3EZQO8sSfwY'
 state_storage = StateMemoryStorage()
 bot = AsyncTeleBot(TOKEN, state_storage=state_storage)
-
 scheduler = AsyncIOScheduler()
 GROUP_ID = -1002365612235
 prefix_folder = ""
@@ -68,38 +79,7 @@ send_weekend_users = []
 send_latehour_users = []
 conflicted_commands = ['/calc','/card','/crypto',"/info","/silent"]
 
-async def init_db(db_path):
-    db_object = await aiosqlite.connect(db_path)
-    await db_object.execute('PRAGMA foreign_keys = ON')
-    await db_object.execute('''
-        CREATE TABLE IF NOT EXISTS users (
-            chat_id INTEGER,
-            topic_id INTEGER,
-            nickname TEXT,
-            username TEXT,
-            is_ban INTEGER DEFAULT 0,
-            reg_date DATETIME,
-            PRIMARY KEY (chat_id, topic_id)
-        )
-    ''')
-    await db_object.execute('''
-        CREATE TABLE IF NOT EXISTS group_messages (
-            topic_id INTEGER,
-            message_id INTEGER,
-            local_id INTEGER,
-            PRIMARY KEY (topic_id, local_id)
-        )
-    ''')
-    await db_object.execute('''
-        CREATE TABLE IF NOT EXISTS private_messages (
-            chat_id INTEGER,
-            message_id INTEGER,
-            local_id INTEGER,
-            PRIMARY KEY (chat_id, local_id)
-        )
-    ''')
-    await db_object.commit()
-    return db_object
+
 translator_hub = None
 def translator_create_or_update():
     global translator_hub
@@ -147,8 +127,191 @@ async def save_work_chats(work_chats):
         print(f"Error saving work chats: {e}")
 
 
+PAYPAL_FIX = Decimal("5.00")
+YOUTUBE_FIX = Decimal("10.00")
+PAYPAL_PERCENT = Decimal("6.00")
+CRYPTO_RATE = Decimal("0.98")
+MAX_AMOUNT_NUM = 999999999999999999
 
-@bot.message_handler(commands=['start'])
+
+_SERVICES = {
+    "ff": 0,
+    "c": Decimal("0.94"),
+    "a": Decimal("0.94"),
+    "s": Decimal("0.94"),
+    "y": Decimal(10),
+    "bs": Decimal("0.94"),
+}
+
+# Путь к файлу с курсами (настройте под себя)
+JSON_PATH = Path("currency_rate.json")
+
+
+def load_currency() -> tuple:
+    data = json.loads(JSON_PATH.read_bytes())
+
+    rates = data.get("rates")
+    usd_to_rub = Decimal(rates.get("USD").replace(",", "."))
+    usd_to_uah = Decimal(rates.get("UAH").replace(",", "."))
+    usd_to_byn = Decimal(rates.get("BYN").replace(",", "."))
+
+    return usd_to_rub, usd_to_uah, usd_to_byn
+
+
+def quantize(num: Decimal) -> Decimal:
+    """Округляет до 2 знаков после запятой"""
+    return num.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+def is_number(s) -> bool:
+    try:
+        float(s)
+    except ValueError:
+        return False
+    else:
+        return True
+
+@bot.message_handler(commands=['ban'], func=lambda message: message.chat.type == "supergroup")
+async def ban_user(message, db=None):
+    await bot.reply_to(message, await db.update_ban_status_by_topic_id())
+
+@bot.message_handler(commands=['silent'], func=lambda message: message.chat.type == "supergroup")
+async def silent(message, db=None):
+    global silent_users
+    user_data = await db.get_user_by_topic_id()
+
+    if(len(silent_users)>0):
+        item = None
+        for i in silent_users:
+            if(str(i.topic_id)==str(message.message_thread_id)):
+                item = i
+        if(item!=None):
+            silent_users.remove(item)
+            await bot.reply_to(message, "Тихий режим деактивирован")
+        else:
+            silent_users.append(user_data)
+            await bot.reply_to(message, "Тихий режим активирован")
+    else:
+        silent_users.append(user_data)
+        await bot.reply_to(message, "Тихий режим активирован")
+
+@bot.message_handler(commands=['info', 'i'], func=lambda message: message.chat.type == "supergroup")
+async def information_group(message, db=None):
+    user_data = await db.get_user_by_topic_id()
+    reg_data = datetime.strptime(user_data.reg_date, '%Y-%m-%d %H:%M:%S.%f')
+    utc_zone = pytz.utc
+    dt_aware_utc = utc_zone.localize(reg_data)
+    moscow_zone = pytz.timezone('Europe/Moscow')
+    dt_moscow = dt_aware_utc.astimezone(moscow_zone)
+    formatted_output = dt_moscow.strftime('%Y-%m-%d %H:%M:%S') + ' UTC+03:00'
+    chat_info = await bot.get_chat(user_data.chat_id)
+
+    await bot.reply_to(message, f"Username: <a href='tg://user?id={user_data.chat_id}'>@{chat_info.username}</a>\nNickname: {user_data.nickname}\nID: {user_data.chat_id}\nЗаблокирован: {'False' if user_data.is_ban==0 else 'True'}\nДата регистрации:\n{formatted_output}",parse_mode='HTML')
+
+@bot.message_handler(commands=['card', 'crypto'], func=lambda message: message.chat.type == "private")
+async def calculate_payment(message):
+    splitted_text = message.text.split()
+
+    cmd = splitted_text[0].replace("/", "").lower()
+
+    s_args = splitted_text[1:]
+
+    if (
+            not s_args
+            or len(s_args) < 2
+            or any(not is_number(arg) for arg in s_args[:2])
+    ):
+        # Ключ заменен на подчеркивание: errors.none... -> errors_none...
+        await bot.reply_to(message, _("errors_none_or_less_two"), parse_mode='HTML')
+        return
+
+    amount = Decimal(s_args[0])
+
+    if not (0 <= amount <= MAX_AMOUNT_NUM):
+        await bot.reply_to(message, _("errors_large_num"), parse_mode='HTML')
+        return
+
+    commission = Decimal(s_args[1])
+
+    rub, uah, byn = load_currency()
+
+    total = Decimal(0)
+    outcast_commission = Decimal(0)
+    _service = None
+
+    if len(s_args) == 2:
+        amount -= amount * (PAYPAL_PERCENT / 100)
+        outcast_commission = (amount - PAYPAL_FIX) * (commission / 100)
+        total = quantize(amount - PAYPAL_FIX - outcast_commission)
+    else:
+        _service = s_args[2].lower()
+
+        if _service not in _SERVICES:
+            await bot.reply_to(message, _("errors_unknown_service"), parse_mode='HTML')
+            return
+
+        service = _SERVICES[_service]
+
+        if _service == "ff":
+            outcast_commission = (amount - PAYPAL_FIX) * (commission / 100)
+            total = quantize(amount - PAYPAL_FIX - outcast_commission)
+
+        elif _service == "bs":
+            amount *= service
+            outcast_commission = (amount - PAYPAL_FIX) * (commission / 100)
+            total = quantize(amount - PAYPAL_FIX - outcast_commission)
+
+        elif _service == "y":
+            youtube_commission = amount * service / 100
+            outcast_commission = amount * (commission / 100)
+            total = quantize(amount - youtube_commission - outcast_commission)
+
+    # Собираем данные
+    _kwargs = {
+        "amount": amount,
+        "commission": commission,
+        "total": total,
+    }
+
+    if cmd == "crypto":  # PaymentType.CRYPTO
+        key = "crypto"
+        _kwargs["usdt"] = quantize(total * CRYPTO_RATE)  # Заменил CRYPTO на CRYPTO_RATE (константа)
+    else:
+        key = "card"
+        _kwargs.update({
+            "to_rub": quantize(total * rub),
+            "to_uah": quantize(total * (rub * (Decimal("10") / uah))),
+            "to_byn": quantize(total * (rub * (Decimal("1") / byn))),
+        })
+
+    # Формирование суффикса (заменил точки на _)
+    if _service is None:
+        _kwargs["paypal_fix"] = PAYPAL_FIX
+        key += "_default"
+    elif _service == "ff":
+        _kwargs["paypal_fix"] = PAYPAL_FIX
+        key += "_friends_and_family"
+    elif _service == "bs":
+        _kwargs["paypal_fix"] = PAYPAL_FIX
+        key += "_beatstars"
+    elif _service == "y":
+        _kwargs.update({
+            "youtube_fix": YOUTUBE_FIX,
+            "youtube_commission": quantize(amount * Decimal("0.10")),
+        })
+        key += "_youtube"
+
+    final_kwargs = {}
+    for k, v in _kwargs.items():
+        if isinstance(v, Decimal):
+            if k in ["to_rub", "to_uah"]:  # Рубли и гривны обычно без копеек
+                final_kwargs[k] = f"{v:.2f}"
+            else:
+                final_kwargs[k] = f"{v:.2f}"
+        else:
+            final_kwargs[k] = v
+
+    await bot.reply_to(message, _(key, **final_kwargs), parse_mode='HTML',disable_web_page_preview=True)
+
+@bot.message_handler(commands=['start'], func=lambda message: message.chat.type == "private")
 async def handle_start(message, album: list = None, db=None, checker=None):
     if db is None:
         await bot.reply_to(message, "Ошибка подключения к базе данных ")
@@ -192,7 +355,15 @@ async def callback_ui_faq(call):
         InputMediaPhoto(_(f'{parent.split("-")[0]}-img_{parent.split("-")[1]}'), _(f'{parent.split("-")[0]}-txt_{parent.split("-")[1]}'), parse_mode="HTML"), call.message.chat.id,
         call.message.message_id, reply_markup=markup)
 
-callback_datas_dashboard = ('faq', 'proceeds', 'link_site', 'monetization', 'subscription', 'support')
+callback_datas_dashboard = (
+    'faq',
+    'proceeds',
+    'link_site',
+    'monetization',
+    'subscription',
+    'support',
+    'last_button'
+)
 async def start_markup(message,message_id,calldata=None):
     func_name = inspect.currentframe().f_code.co_name
     markup = InlineKeyboardMarkup()
@@ -218,22 +389,22 @@ callback_datas_proceeds = [
         'name': 'Apple pay',
         'id': 'proceeds-apple_pay',
         'btn_type': 'link'
-    },
-    {
-        'name': 'Venmo',
-        'id': 'proceeds-venmo',
-        'btn_type': 'link'
-    },
-    {
-        'name': 'Zelle',
-        'id': 'proceeds-zelle',
-        'btn_type': 'link'
-    },
-    {
-        'name': 'Card',
-        'id': 'proceeds-card',
-        'btn_type': 'link'
-    },
+    }
+    # {
+    #     'name': 'Venmo',
+    #     'id': 'proceeds-venmo',
+    #     'btn_type': 'link'
+    # },
+    # {
+    #     'name': 'Zelle',
+    #     'id': 'proceeds-zelle',
+    #     'btn_type': 'link'
+    # },
+    # {
+    #     'name': 'Card',
+    #     'id': 'proceeds-card',
+    #     'btn_type': 'link'
+    # },
 ]
 async def ui_proceeds(message,message_id,calldata=None):
     markup = InlineKeyboardMarkup()
@@ -405,6 +576,11 @@ async def ui_support(message,message_id, calldata=None):
     markup.add(InlineKeyboardButton(_("btn_back"),callback_data=f"back:{start_markup.__name__}"))
     await bot.edit_message_media(InputMediaPhoto(_('img_support'), _('txt_support'), parse_mode="HTML"), message.chat.id,message_id, reply_markup=markup)
 
+async def ui_last(message,message_id, calldata=None):
+    markup = InlineKeyboardMarkup()
+    markup.add(InlineKeyboardButton(_("btn_back"),callback_data=f"back:{start_markup.__name__}"))
+    await bot.edit_message_media(InputMediaPhoto(_('img_last_button'), _('txt_last_button'), parse_mode="HTML"), message.chat.id,message_id, reply_markup=markup)
+
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith(callback_datas_dashboard))
 async def callback_dashboard(call):
@@ -418,6 +594,8 @@ async def callback_dashboard(call):
         await ui_monetization(call.message, call.message.message_id)
     elif call.data.startswith(callback_datas_dashboard[5]):
         await ui_support(call.message, call.message.message_id)
+    elif call.data.startswith(callback_datas_dashboard[6]):
+        await ui_last(call.message, call.message.message_id)
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith("back"))
 async def back(call):
@@ -972,7 +1150,10 @@ async def private_messages(message, album: list = None, db=None, new_topic_id=No
     global weekend, latehour, send_weekend_users, send_latehour_users
     func = None
     attempt = {}
+
+
     try:
+        user_data = await db.get_user_by_chat_id()
         topic_id = await db.get_or_create_topic()
         chat_id = message.chat.id
         reply_message_id = None
@@ -1169,7 +1350,7 @@ async def checker():
             else:
                 latehour = False
 scheduler.add_job(checker, "interval", seconds=5)
-
+scheduler.add_job(update_rates, "cron", hour=17,minute=0,timezone=ZoneInfo("Europe/Moscow"))
 # Запуск бота
 async def main():
     global db_path
@@ -1182,7 +1363,9 @@ async def main():
     bot.setup_middleware(StateMiddleware(bot))
     bot.setup_middleware(UserTimeChecker(GROUP_ID, db_path))
     bot.setup_middleware(DatabaseMiddleware(db_object, bot, GROUP_ID))
+    bot.setup_middleware(BanMiddleware(db_object, bot, GROUP_ID))
     bot.setup_middleware(AlbumMiddleware())
+    bot.setup_middleware(SilentMiddleware())
 
     while True:
         try:

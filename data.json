@@ -110,16 +110,7 @@
       "IsAutoResponse": false,
       "template_type": "default"
     },
-    {
-      "Folder_Name": "OC1parasite",
-      "API_TOKEN": "8450813616:AAG6DxpaEbRY-d7g-D4Bb-79qKcF04oZnyI",
-      "GROUP_CHAT_ID": "-1002520385279",
-      "IsCheckHours": true,
-      "IsCheckDays": true,
-      "IsPhotoStart": true,
-      "IsAutoResponse": false,
-      "template_type": "default"
-    },
+
     {
       "Folder_Name": "OC2",
       "API_TOKEN": "7748554511:AAF2okKvzcMz0ex8d7q7D30QwiXN6fHg6Dg",
@@ -149,6 +140,17 @@
       "IsPhotoStart": true,
       "IsAutoResponse": false,
       "template_type": "default"
+    },
+    {
+      "Folder_Name": "OC5",
+      "API_TOKEN": "8450813616:AAG6DxpaEbRY-d7g-D4Bb-79qKcF04oZnyI",
+      "GROUP_CHAT_ID": "-1002520385279",
+      "IsCheckHours": true,
+      "IsCheckDays": true,
+      "IsPhotoStart": true,
+      "IsAutoResponse": false,
+      "template_type": "parasite",
+      "host_template": "OC1"
     },
     {
       "Folder_Name": "OCSeo",

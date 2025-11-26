@@ -2,6 +2,7 @@ import asyncio
 from datetime import datetime
 
 import aiosqlite
+import pytz
 from telebot.async_telebot import AsyncTeleBot
 from telebot.asyncio_handler_backends import BaseMiddleware
 from dataclasses import dataclass
@@ -49,7 +50,15 @@ class Database:
     async def get_all_users(self) -> List[User]:
         async with self.db.execute('SELECT chat_id, topic_id, nickname, username, is_ban, reg_date FROM users') as cursor:
             rows = await cursor.fetchall()
-            return [User(chat_id, topic_id, nickname,username,is_ban,reg_date) for chat_id, topic_id, nickname,username,is_ban,reg_date  in rows]
+
+            return [User(chat_id, topic_id, nickname,username,False if is_ban==0 else True,reg_date) for chat_id, topic_id, nickname,username,is_ban,reg_date  in rows]
+
+
+    async def get_all_users_without_self(self,database) -> List[User]:
+        async with database.execute('SELECT chat_id, topic_id, nickname, username, is_ban, reg_date FROM users') as cursor:
+            rows = await cursor.fetchall()
+
+            return [User(chat_id, topic_id, nickname,username,False if is_ban==0 else True,reg_date) for chat_id, topic_id, nickname,username,is_ban,reg_date  in rows]
 
     # async def add_or_update_user(self, user_name: str, topic_id: int):
     #     await self.db.execute('''
@@ -96,7 +105,7 @@ class Database:
             await self.db.execute('''
                 INSERT INTO users (chat_id, topic_id, nickname, username, reg_date)
                 VALUES (?, ?, ?, ?, ?)
-            ''', (self.chat_id, forum_topic.message_thread_id, nickname,username,datetime.now()))
+            ''', (self.chat_id, forum_topic.message_thread_id, nickname,username,datetime.utcnow()))
 
             await self.db.commit()
             return forum_topic.message_thread_id
@@ -331,3 +340,51 @@ class Database:
         # Delete all messages from group_messages for this topic_id
         await self.db.execute('DELETE FROM group_messages WHERE topic_id = ?', (topic_id,))
         await self.db.commit()
+
+    async def get_user_by_topic_id(self):
+        if(isinstance(self.message, Message)):
+            async with self.db.execute('SELECT chat_id, topic_id, nickname, username, is_ban, reg_date FROM users WHERE topic_id = ?', (self.message.message_thread_id,)) as cursor:
+                row = await cursor.fetchone()
+                if row:
+                    row = list(row)
+                    row[4] = False if row[4] == 0 else True
+                    return User(*row)
+                else:
+                    await self.bot.send_message(self.chat_id, "Данный чат перестал функционировать", message_thread_id=self.message.message_thread_id)
+                    return None
+        else:
+            topic_id = await self.get_topic_id_by_message_id(self.message.message_id)
+            async with self.db.execute('SELECT chat_id, topic_id, nickname, username, is_ban, reg_date FROM users WHERE topic_id = ?', (topic_id,)) as cursor:
+                row = await cursor.fetchone()
+                if row:
+                    row = list(row)
+                    row[4] = False if row[4] == 0 else True
+                    return User(*row)
+                else:
+                    await self.bot.send_message(self.chat_id, "Данный чат перестал функционировать", message_thread_id=self.message.message_thread_id)
+                    return None
+    async def get_user_by_chat_id(self):
+        async with self.db.execute(
+                'SELECT chat_id, topic_id, nickname, username, is_ban, reg_date FROM users WHERE chat_id = ?',
+                (self.message.chat.id,)) as cursor:
+            row = await cursor.fetchone()
+            if row:
+                row = list(row)
+                row[4] = False if row[4] == 0 else True
+                return User(*row)
+            else:
+                await self.get_or_create_topic()
+                return await self.get_user_by_chat_id()
+                # await self.bot.send_message(self.chat_id, "Данный чат перестал функционировать",
+                #                             message_thread_id=self.message.message_thread_id)
+                # return None
+    async def update_ban_status_by_topic_id(self):
+        user = await self.get_user_by_topic_id()
+
+        await self.db.execute('UPDATE users SET is_ban=? WHERE topic_id = ?',
+                              (not user.is_ban,self.message.message_thread_id))
+        await self.db.commit()
+        if(not user.is_ban==True):
+            return "Пользователь заблокирован"
+        else:
+            return "Пользователь разблокирован"

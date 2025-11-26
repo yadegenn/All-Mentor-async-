@@ -27,7 +27,7 @@ from telebot.types import InputMediaPhoto, InputMediaVideo, InputMediaDocument, 
 from telebot.types import MessageEntity
 from middlewares.album import AlbumMiddleware
 from middlewares.db import DatabaseMiddleware
-
+from utils.db import init_db
 from middlewares.timeout import UserTimeChecker, user_data, group_data
 from fluentogram import FluentTranslator, TranslatorHub
 from fluent_compiler.bundle import FluentBundle
@@ -47,7 +47,7 @@ socket.getaddrinfo = getaddrinfo_ipv4
 
 
 # данные
-TOKEN = '6793024214:AAEk7_zBfBUbQfkByDSHAUauM-VPdSod6pg'
+TOKEN = '6393711599:AAEonGZOT0-YA8wORN2SDyXLPCUfPYhanrU'
 state_storage = StateMemoryStorage()
 bot = AsyncTeleBot(TOKEN, state_storage=state_storage)
 
@@ -57,7 +57,7 @@ prefix_folder = ""
 db_path = f"{prefix_folder}bot.db"
 WORK_CHAT_FILE = f'{prefix_folder}work_chat.txt'
 DEVELOPER_ID = 5434361630
-ADMINS = [5434361630, 629454540, 612324246]
+ADMINS = [5434361630,6929772573]
 is_weekend_have = False
 is_latehour_have = True
 is_photo_start = True
@@ -67,35 +67,7 @@ send_weekend_users = []
 send_latehour_users = []
 conflicted_commands = ['/calc','/card','/crypto',"/info","/silent"]
 
-async def init_db(db_path):
-    db_object = await aiosqlite.connect(db_path)
-    await db_object.execute('PRAGMA foreign_keys = ON')
-    await db_object.execute('''
-        CREATE TABLE IF NOT EXISTS users (
-            chat_id INTEGER,
-            topic_id INTEGER,
-            user_name TEXT,
-            PRIMARY KEY (chat_id, topic_id)
-        )
-    ''')
-    await db_object.execute('''
-        CREATE TABLE IF NOT EXISTS group_messages (
-            topic_id INTEGER,
-            message_id INTEGER,
-            local_id INTEGER,
-            PRIMARY KEY (topic_id, local_id)
-        )
-    ''')
-    await db_object.execute('''
-        CREATE TABLE IF NOT EXISTS private_messages (
-            chat_id INTEGER,
-            message_id INTEGER,
-            local_id INTEGER,
-            PRIMARY KEY (chat_id, local_id)
-        )
-    ''')
-    await db_object.commit()
-    return db_object
+
 translator_hub = TranslatorHub(
     locales_map={
         "ru": "ru"

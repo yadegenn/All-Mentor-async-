@@ -8,7 +8,7 @@ data_file = "data.json"
 base_template_file = "templates/template.py.j2"
 output_folder = "output"
 middleware_folder = "middlewares"
-
+utils_folder = "utils"
 # Load data
 with open(data_file, 'r', encoding='utf-8') as file:
     data = json.load(file)
@@ -43,11 +43,7 @@ def find_function_boundaries(content, func_name):
 
 # Process each bot configuration
 for bot in data['bots']:
-    folder_name = None
-    if "parasite" in bot['Folder_Name']:
-        folder_name = bot['Folder_Name'].split("parasite")[0]
-    else:
-        folder_name = bot['Folder_Name']
+    folder_name = bot['Folder_Name']
     bot_output_folder = os.path.join(output_folder, folder_name)
 
     # Create bot-specific output directory
@@ -101,7 +97,14 @@ for bot in data['bots']:
     if os.path.exists(middleware_folder):
         try:
             shutil.copytree(middleware_folder, os.path.join(bot_output_folder, middleware_folder), dirs_exist_ok=True)
+
         except Exception as e:
             print(f"Error copying middleware for {folder_name}: {str(e)}")
+    if os.path.exists(utils_folder):
+        try:
+            shutil.copytree(utils_folder, os.path.join(bot_output_folder, utils_folder), dirs_exist_ok=True)
+
+        except Exception as e:
+            print(f"Error copying utils for {folder_name}: {str(e)}")
 
 print("Files generated successfully.")

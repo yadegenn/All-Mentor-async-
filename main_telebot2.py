@@ -321,7 +321,7 @@ async def handle_start(message, album: list = None, db=None, checker=None):
 
     msg = await bot.send_photo(message.chat.id, _('start_message-file_id'), caption=_('start_message'), parse_mode='HTML')
     await start_markup(message,msg.message_id)
-    await bot.reply_to(message,_("start_reply"))
+    await bot.reply_to(message,_("start_reply"), parse_mode="HTML")
 callback_datas_ui_faq = (
     'faq-service_info',
     'faq-payout_terms',
@@ -358,11 +358,12 @@ async def callback_ui_faq(call):
 callback_datas_dashboard = (
     'faq',
     'proceeds',
+    'last_button',
     'link_site',
     'monetization',
     'subscription',
-    'support',
-    'last_button'
+    'support'
+
 )
 async def start_markup(message,message_id,calldata=None):
     func_name = inspect.currentframe().f_code.co_name
@@ -589,13 +590,13 @@ async def callback_dashboard(call):
     elif call.data.startswith(callback_datas_dashboard[1]):
         await ui_proceeds(call.message, call.message.message_id)
     elif call.data.startswith(callback_datas_dashboard[2]):
-        await ui_link_site(call.message, call.message.message_id)
-    elif call.data.startswith(callback_datas_dashboard[3]):
-        await ui_monetization(call.message, call.message.message_id)
-    elif call.data.startswith(callback_datas_dashboard[5]):
-        await ui_support(call.message, call.message.message_id)
-    elif call.data.startswith(callback_datas_dashboard[6]):
         await ui_last(call.message, call.message.message_id)
+    elif call.data.startswith(callback_datas_dashboard[3]):
+        await ui_link_site(call.message, call.message.message_id)
+    elif call.data.startswith(callback_datas_dashboard[4]):
+        await ui_monetization(call.message, call.message.message_id)
+    elif call.data.startswith(callback_datas_dashboard[6]):
+        await ui_support(call.message, call.message.message_id)
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith("back"))
 async def back(call):
@@ -874,7 +875,7 @@ async def setAlertIcon(topic_id):
 async def days_ping(chat_id):
     await bot.send_message(chat_id, "Здравствуйте, чем могу помочь?")
 async def scheduled_reminder(chat_id):
-    await bot.send_message(chat_id, _("sheduled_text"))
+    await bot.send_message(chat_id, _("sheduled_text"), parse_mode="HTML")
 
 def formating(text: str | None,last_entities, new_entities, last_text):
     if (last_text == None):

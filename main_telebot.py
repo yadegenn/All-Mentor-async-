@@ -26,7 +26,9 @@ from telebot.types import InputMediaPhoto, InputMediaVideo, InputMediaDocument, 
     InputMediaAnimation
 from telebot.types import MessageEntity
 from middlewares.album import AlbumMiddleware
+from middlewares.ban import BanMiddleware
 from middlewares.db import DatabaseMiddleware
+from middlewares.silent import SilentMiddleware
 from utils.db import init_db
 from middlewares.timeout import UserTimeChecker, user_data, group_data
 from fluentogram import FluentTranslator, TranslatorHub
@@ -50,7 +52,6 @@ socket.getaddrinfo = getaddrinfo_ipv4
 TOKEN = '6393711599:AAEonGZOT0-YA8wORN2SDyXLPCUfPYhanrU'
 state_storage = StateMemoryStorage()
 bot = AsyncTeleBot(TOKEN, state_storage=state_storage)
-
 scheduler = AsyncIOScheduler()
 GROUP_ID = -1002365612235
 prefix_folder = ""
@@ -65,7 +66,7 @@ weekend = False
 latehour = False
 send_weekend_users = []
 send_latehour_users = []
-conflicted_commands = ['/calc','/card','/crypto',"/info","/silent"]
+conflicted_commands = ['/calc','/card','/crypto',"/info","/silent", "/ban"]
 
 
 translator_hub = TranslatorHub(
@@ -799,6 +800,8 @@ async def main():
     bot.setup_middleware(UserTimeChecker(GROUP_ID, db_path))
     bot.setup_middleware(DatabaseMiddleware(db_object, bot, GROUP_ID))
     bot.setup_middleware(AlbumMiddleware())
+    bot.setup_middleware(SilentMiddleware())
+    bot.setup_middleware(BanMiddleware(db_object, bot, GROUP_ID))
 
     while True:
         try:

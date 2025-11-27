@@ -7,6 +7,8 @@ from telebot import SkipHandler
 from telebot.asyncio_handler_backends import BaseMiddleware, CancelUpdate
 from telebot.types import Message, MessageReactionUpdated
 
+from utils.db import init_db
+
 user_data = {}
 group_data = {}
 
@@ -18,43 +20,9 @@ class UserTimeChecker(BaseMiddleware):
         self.db_path = db_path
         self.db_object = None
 
+
     async def database_init(self):
-        self.db_object = await aiosqlite.connect(self.db_path)
-        await self.db_object.execute('PRAGMA foreign_keys = ON')
-        await self.db_object.execute('''
-            CREATE TABLE IF NOT EXISTS users (
-                chat_id INTEGER,
-                topic_id INTEGER,
-                user_name TEXT,
-                PRIMARY KEY (chat_id, topic_id)
-            )
-        ''')
-        await self.db_object.execute('''
-            CREATE TABLE IF NOT EXISTS group_messages (
-                topic_id INTEGER,
-                message_id INTEGER,
-                local_id INTEGER,
-                PRIMARY KEY (topic_id, local_id)
-            )
-        ''')
-        await self.db_object.execute('''
-            CREATE TABLE IF NOT EXISTS private_messages (
-                chat_id INTEGER,
-                message_id INTEGER,
-                local_id INTEGER,
-                PRIMARY KEY (chat_id, local_id)
-            )
-        ''')
-        await self.db_object.execute('''
-            CREATE TABLE IF NOT EXISTS message_reactions (
-                chat_id INTEGER,
-                message_id INTEGER,
-                user_id INTEGER,
-                reaction TEXT,
-                PRIMARY KEY (chat_id, message_id, user_id)
-            )
-        ''')
-        await self.db_object.commit()
+        self.db_object = await init_db(self.db_path)
 
     async def get_topic_id_by_chat_id(self, chat_id):
         await self.database_init()

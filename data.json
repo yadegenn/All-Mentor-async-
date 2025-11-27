@@ -104,7 +104,7 @@
       "Folder_Name": "OC1",
       "API_TOKEN": "7388589430:AAH-tE2t_29qBrgWHNC8P1I-eFz_7W5c45w",
       "GROUP_CHAT_ID": "-1002520385279",
-      "IsCheckHours": true,
+      "IsCheckHours": false,
       "IsCheckDays": true,
       "IsPhotoStart": true,
       "IsAutoResponse": false,
@@ -150,7 +150,7 @@
       "IsPhotoStart": true,
       "IsAutoResponse": false,
       "template_type": "parasite",
-      "host_template": "OC1"
+      "host_folder": "OC1"
     },
     {
       "Folder_Name": "OCSeo",

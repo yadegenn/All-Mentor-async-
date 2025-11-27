@@ -26,15 +26,28 @@ from telebot.types import InputMediaPhoto, InputMediaVideo, InputMediaDocument, 
     InputMediaAnimation
 from telebot.types import MessageEntity
 from middlewares.album import AlbumMiddleware
+from middlewares.ban import BanMiddleware
 from middlewares.db import DatabaseMiddleware
-
+from middlewares.silent import SilentMiddleware
+from utils.db import init_db
 from middlewares.timeout import UserTimeChecker, user_data, group_data
 from fluentogram import FluentTranslator, TranslatorHub
 from fluent_compiler.bundle import FluentBundle
 from quart import Quart, request, jsonify
-from quart_cors import cors
+# from quart_cors import cors
 from hypercorn.asyncio import serve
 from hypercorn.config import Config
+
+# убираем ipv6
+import socket
+orig_getaddrinfo = socket.getaddrinfo
+
+def getaddrinfo_ipv4(host, port, family=0, type=0, proto=0, flags=0):
+    return orig_getaddrinfo(host, port, socket.AF_INET, type, proto, flags)
+
+socket.getaddrinfo = getaddrinfo_ipv4
+
+
 # данные
 TOKEN = '6477090169:AAEnu9aLce2ePwJFU7DgtfgmU-02Ov0k1Pw'
 state_storage = StateMemoryStorage()
@@ -45,7 +58,7 @@ prefix_folder = ""
 db_path = f"{prefix_folder}bot.db"
 WORK_CHAT_FILE = f'{prefix_folder}work_chat.txt'
 DEVELOPER_ID = 5434361630
-ADMINS = [5434361630, 629454540, 612324246, 6567025443]
+ADMINS = [5434361630,6929772573]
 is_weekend_have = True
 is_latehour_have = True
 is_photo_start = True
@@ -53,37 +66,9 @@ weekend = False
 latehour = False
 send_weekend_users = []
 send_latehour_users = []
-conflicted_commands = ['/calc','/card','/crypto',"/info","/silent"]
+conflicted_commands = ['/calc','/card','/crypto',"/info","/silent","/ban"]
 
-async def init_db(db_path):
-    db_object = await aiosqlite.connect(db_path)
-    await db_object.execute('PRAGMA foreign_keys = ON')
-    await db_object.execute('''
-        CREATE TABLE IF NOT EXISTS users (
-            chat_id INTEGER,
-            topic_id INTEGER,
-            user_name TEXT,
-            PRIMARY KEY (chat_id, topic_id)
-        )
-    ''')
-    await db_object.execute('''
-        CREATE TABLE IF NOT EXISTS group_messages (
-            topic_id INTEGER,
-            message_id INTEGER,
-            local_id INTEGER,
-            PRIMARY KEY (topic_id, local_id)
-        )
-    ''')
-    await db_object.execute('''
-        CREATE TABLE IF NOT EXISTS private_messages (
-            chat_id INTEGER,
-            message_id INTEGER,
-            local_id INTEGER,
-            PRIMARY KEY (chat_id, local_id)
-        )
-    ''')
-    await db_object.commit()
-    return db_object
+
 translator_hub = TranslatorHub(
     locales_map={
         "ru": "ru"
@@ -332,7 +317,6 @@ async def handle_start(message, album: list = None, db=None, checker=None):
         await bot.send_photo(message.chat.id, InputFile(f"{prefix_folder}main.png"), caption=welcome_message, parse_mode='HTML')
     else:
         await bot.send_message(chat_id=message.chat.id, text=welcome_message, parse_mode='HTML', link_preview_options=LinkPreviewOptions(is_disabled=True))
-
 
 def formating(text: str | None,last_entities, new_entities, last_text):
     if (last_text == None):
@@ -700,6 +684,7 @@ async def private_messages(message, album: list = None, db=None, new_topic_id=No
 
 
 
+
 @bot.message_handler(content_types=telebot.util.content_type_media, func=lambda message: message.chat.id == GROUP_ID and message.message_thread_id not in work_chats and message.message_thread_id!=None )
 async def group_messages(message, album: list = None, db=None):
     reply_message_id = None
@@ -748,7 +733,12 @@ async def group_messages(message, album: list = None, db=None):
             line_content = last_trace.line
             await bot.send_message(DEVELOPER_ID,
                                    f"Ошибка при отправке сообщения от посредника в теме ({message.message_thread_id}) строка {line_number}: {line_content} код ошибки: {e}")
-
+rules_checker = [
+    # {"type": "private", "timeout": timedelta(hours=1), "action": days_ping}
+]
+rules_checker.append({"type": "weekend", "day": 5} if is_weekend_have else {"type": "none"})
+rules_checker.append({"type": "weekend", "day": 6} if is_weekend_have else {"type": "none"})
+rules_checker.append({"type": "latehour", "hour": 19} if is_latehour_have else {"type": "none"})
 async def checker():
     global weekend, latehour,rules_checker
     for i in rules_checker:
@@ -795,6 +785,43 @@ async def checker():
                 latehour = True
             else:
                 latehour = False
+scheduler.add_job(checker, "interval", seconds=5)
+
+# Запуск бота
+async def main():
+    global db_path
+    print("Бот запущен!")
+    setup_logging()
+    db_object = await init_db(db_path)
+
+    bot.add_custom_filter(asyncio_filters.StateFilter(bot))
+    # bot.setup_middleware(RateLimitMiddleware(limit_messages=5,limit_albums=3,time_window=40, bot=bot))
+    bot.setup_middleware(StateMiddleware(bot))
+    bot.setup_middleware(UserTimeChecker(GROUP_ID, db_path))
+    bot.setup_middleware(DatabaseMiddleware(db_object, bot, GROUP_ID))
+    bot.setup_middleware(AlbumMiddleware())
+    bot.setup_middleware(SilentMiddleware())
+    bot.setup_middleware(BanMiddleware(db_object, bot, GROUP_ID))
+
+    while True:
+        try:
+            if scheduler.running == False:
+                scheduler.start()
+            await bot.infinity_polling(allowed_updates=[
+                'message',
+                'edited_message',
+                'channel_post',
+                'edited_channel_post',
+                'message_reaction',
+                'message_reaction_count',
+                'callback_query',
+                'chat_member'
+            ])
+        except Exception as e:
+            await db_object.close()
+            if scheduler.running:
+                scheduler.shutdown()
+
 def setup_logging():
     # Создание директорий для логов
     error_log_dir = f"{prefix_folder}logs/errors"
@@ -827,45 +854,6 @@ def setup_logging():
     # Настройка основного логгера
     logging.basicConfig(level=logging.DEBUG, handlers=[error_handler, debug_handler])
 
-scheduler.add_job(checker, "interval", seconds=5)
-
-# Запуск бота
-async def main():
-    global db_path
-    print("Бот запущен!")
-    setup_logging()
-    db_object = await init_db(db_path)
-    rules_checker = [
-        {"type": "private", "timeout": timedelta(hours=1), "action": days_ping}
-    ]
-    rules_checker.append({"type": "weekend", "day": 5} if is_weekend_have else {"type": "none"})
-    rules_checker.append({"type": "weekend", "day": 6} if is_weekend_have else {"type": "none"})
-    rules_checker.append({"type": "latehour", "hour": 19} if is_latehour_have else {"type": "none"})
-    bot.add_custom_filter(asyncio_filters.StateFilter(bot))
-    # bot.setup_middleware(RateLimitMiddleware(limit_messages=5,limit_albums=3,time_window=40, bot=bot))
-    bot.setup_middleware(StateMiddleware(bot))
-    bot.setup_middleware(UserTimeChecker(GROUP_ID, db_path))
-    bot.setup_middleware(DatabaseMiddleware(db_object, bot, GROUP_ID))
-    bot.setup_middleware(AlbumMiddleware())
-
-    while True:
-        try:
-            if scheduler.running == False:
-                scheduler.start()
-            await bot.infinity_polling(allowed_updates=[
-                'message',
-                'edited_message',
-                'channel_post',
-                'edited_channel_post',
-                'message_reaction',
-                'message_reaction_count',
-                'callback_query',
-                'chat_member'
-            ])
-        except Exception as e:
-            await db_object.close()
-            if scheduler.running:
-                scheduler.shutdown()
 
 
 if __name__ == "__main__":

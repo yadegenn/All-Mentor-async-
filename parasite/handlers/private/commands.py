@@ -1,5 +1,23 @@
-from main_telebot2 import bot
+from decimal import Decimal
 
+from handlers.private.markups import start_markup
+from loader import bot
+from utils.calc import MAX_AMOUNT_NUM, load_currency, PAYPAL_PERCENT, PAYPAL_FIX, _SERVICES, CRYPTO_RATE, YOUTUBE_FIX
+from utils.translator import _
+from utils.math_and_types import is_number, quantize
+
+
+@bot.message_handler(commands=['start'], func=lambda message: message.chat.type == "private")
+async def handle_start(message, album: list = None, db=None, checker=None):
+    if db is None:
+        await bot.reply_to(message, "Ошибка подключения к базе данных ")
+        return
+    all_users = await db.get_all_users()
+    user_name = message.from_user.username or message.from_user.first_name
+
+    msg = await bot.send_photo(message.chat.id, _('start_message-file_id'), caption=_('start_message'), parse_mode='HTML')
+    await start_markup(message,msg.message_id)
+    await bot.reply_to(message,_("start_reply"), parse_mode="HTML")
 
 @bot.message_handler(commands=['card', 'crypto'], func=lambda message: message.chat.type == "private")
 async def calculate_payment(message):
@@ -105,3 +123,4 @@ async def calculate_payment(message):
             final_kwargs[k] = v
 
     await bot.reply_to(message, _(key, **final_kwargs), parse_mode='HTML',disable_web_page_preview=True)
+

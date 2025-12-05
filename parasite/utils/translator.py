@@ -1,7 +1,7 @@
 from fluent_compiler.bundle import FluentBundle
 from fluentogram import TranslatorHub, FluentTranslator
 
-from loader import prefix_folder
+from test_bot.loader import prefix_folder
 
 translator_hub = None
 

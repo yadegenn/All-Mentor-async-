@@ -1,6 +1,6 @@
 from decimal import Decimal, ROUND_HALF_UP
 
-from loader import conflicted_commands
+from test_bot.loader import conflicted_commands
 
 
 def quantize(num: Decimal) -> Decimal:

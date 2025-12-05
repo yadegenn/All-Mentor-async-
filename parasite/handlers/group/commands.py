@@ -2,8 +2,8 @@ from datetime import datetime
 
 import pytz
 
-from loader import bot, ADMINS
-from utils.io import load_work_chats, save_work_chats
+from test_bot.loader import bot, ADMINS
+from test_bot.utils.io import load_work_chats, save_work_chats
 
 group_func = lambda message: message.chat.type == "supergroup"
 

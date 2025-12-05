@@ -1,14 +1,11 @@
 import traceback
-from pydoc import html
 
 import telebot
 from telebot.types import InputMediaPhoto, InputMediaVideo, InputMediaDocument, InputMediaAudio
 
-from handlers.group.commands import work_chats
-from loader import bot, GROUP_ID, DEVELOPER_ID
-from utils.formats import caption_messages, text_message_format
-from utils.markup_sources import get_content_data
-from utils.math_and_types import check_conflicted_commands
+from test_bot.handlers.group.commands import work_chats
+from test_bot.loader import bot, GROUP_ID, DEVELOPER_ID
+from test_bot.utils.math_and_types import check_conflicted_commands
 
 
 @bot.message_handler(content_types=telebot.util.content_type_media, func=lambda message: message.chat.id == GROUP_ID and message.message_thread_id not in work_chats and message.message_thread_id!=None )

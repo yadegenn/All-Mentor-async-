@@ -3,10 +3,9 @@ from pydoc import html
 
 import telebot
 from telebot.types import InputMediaPhoto, InputMediaVideo, InputMediaDocument, InputMediaAudio
-from loader import db_path,weekend,latehour,send_weekend_users,send_latehour_users,WORK_CHAT_FILE,state_storage
-from loader import bot, GROUP_ID, DEVELOPER_ID
-from utils.formats import caption_messages, text_message_format
-from utils.markup_sources import get_content_data
+from test_bot.loader import bot, GROUP_ID, DEVELOPER_ID
+from test_bot.utils.formats import caption_messages, text_message_format
+from test_bot.utils.markup_sources import get_content_data
 
 
 @bot.message_handler(content_types=telebot.util.content_type_media, func=lambda message: message.chat.type == "private" )

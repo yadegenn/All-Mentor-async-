@@ -2,7 +2,7 @@ import os
 
 import aiofiles
 
-from loader import WORK_CHAT_FILE
+from test_bot.loader import WORK_CHAT_FILE
 
 
 # загрузка текстового документа с id чатов где бот не будет ругаться на то что чат недействителен

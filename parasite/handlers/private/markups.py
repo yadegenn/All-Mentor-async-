@@ -1,9 +1,9 @@
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton, InputMediaPhoto
 
-from loader import bot
-from utils.markup_sources import callback_datas_dashboard, callback_datas_ui_faq, callback_datas_proceeds, \
+from test_bot.loader import bot
+from test_bot.utils.markup_sources import callback_datas_dashboard, callback_datas_ui_faq, callback_datas_proceeds, \
     callback_datas_link_site, callback_datas_monetization
-from utils.translator import _
+from test_bot.utils.translator import _
 
 
 async def start_markup(message,message_id,calldata=None):
@@ -16,6 +16,7 @@ async def start_markup(message,message_id,calldata=None):
 
 async def ui_faq(message,message_id,calldata=None):
     markup = InlineKeyboardMarkup()
+    print("уже работает")
     for i in callback_datas_ui_faq:
         markup.add(InlineKeyboardButton(_(f'{i.split("-")[0]}-btn_{i.split("-")[1]}'), callback_data=f"{i}:"))
     markup.add(InlineKeyboardButton(_("btn_back"),callback_data=f"back:{start_markup.__name__}"))
@@ -91,6 +92,7 @@ async def ui_monetization(message,message_id, calldata=None):
 
 async def ui_callback_ui_monetization(message,message_id,calldata=None):
     parent = None
+
     if(calldata.split(":")[0].isdigit()):
         parent = callback_datas_monetization[int(calldata.split(":")[0])]['id']
     else:

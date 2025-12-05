@@ -2,7 +2,7 @@ import logging
 import os
 from datetime import datetime
 
-from loader import prefix_folder
+from test_bot.loader import prefix_folder
 
 
 def setup_logging():

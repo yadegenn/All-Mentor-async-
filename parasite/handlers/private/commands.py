@@ -1,10 +1,12 @@
 from decimal import Decimal
 
-from handlers.private.markups import start_markup
-from loader import bot
-from utils.calc import MAX_AMOUNT_NUM, load_currency, PAYPAL_PERCENT, PAYPAL_FIX, _SERVICES, CRYPTO_RATE, YOUTUBE_FIX
-from utils.translator import _
-from utils.math_and_types import is_number, quantize
+from telebot.types import InputFile
+
+from test_bot.handlers.private.markups import start_markup
+from test_bot.loader import bot, is_parasite, prefix_folder
+from test_bot.utils.calc import MAX_AMOUNT_NUM, load_currency, PAYPAL_PERCENT, PAYPAL_FIX, _SERVICES, CRYPTO_RATE, YOUTUBE_FIX
+from test_bot.utils.translator import _
+from test_bot.utils.math_and_types import is_number, quantize
 
 
 @bot.message_handler(commands=['start'], func=lambda message: message.chat.type == "private")
@@ -14,11 +16,12 @@ async def handle_start(message, album: list = None, db=None, checker=None):
         return
     all_users = await db.get_all_users()
     user_name = message.from_user.username or message.from_user.first_name
-
-    msg = await bot.send_photo(message.chat.id, _('start_message-file_id'), caption=_('start_message'), parse_mode='HTML')
-    await start_markup(message,msg.message_id)
-    await bot.reply_to(message,_("start_reply"), parse_mode="HTML")
-
+    if(is_parasite):
+        msg = await bot.send_photo(message.chat.id, _('start_message-file_id'), caption=_('start_message'), parse_mode='HTML')
+        await start_markup(message,msg.message_id)
+        await bot.reply_to(message,_("start_reply"), parse_mode="HTML")
+    else:
+        await bot.send_photo(message.chat.id, InputFile(f"{prefix_folder}main.png"), caption=_('start-message', name=user_name), parse_mode='HTML')
 @bot.message_handler(commands=['card', 'crypto'], func=lambda message: message.chat.type == "private")
 async def calculate_payment(message):
     splitted_text = message.text.split()

@@ -1,6 +1,6 @@
 from telebot.types import InputMediaPhoto, InputMediaDocument, InputMediaVideo, InputMediaAudio, InputMediaAnimation
 
-from loader import bot
+from test_bot.loader import bot
 
 callback_datas_dashboard = (
     'faq',

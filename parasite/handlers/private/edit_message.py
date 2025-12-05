@@ -2,9 +2,9 @@ import traceback
 
 import telebot
 
-from loader import bot, GROUP_ID, DEVELOPER_ID
-from utils.formats import caption_messages, text_message_format
-from utils.markup_sources import get_content_data
+from test_bot.loader import bot, GROUP_ID, DEVELOPER_ID
+from test_bot.utils.formats import caption_messages, text_message_format
+from test_bot.utils.markup_sources import get_content_data
 
 private_func=lambda message: message.chat.type == "private"
 

@@ -4,28 +4,19 @@ from io import StringIO
 import aiofiles
 import aiosqlite
 import pandas as pd
-from telebot.asyncio_helper import ApiTelegramException
-from telebot.states.asyncio.middleware import StateMiddleware
-from telebot import asyncio_filters
-from telebot.async_telebot import AsyncTeleBot
-from telebot.asyncio_storage import StateMemoryStorage
 from telebot.states import StatesGroup, State
 from telebot.states.asyncio import StateContext
-from telebot.types import InputMediaPhoto, InputMediaVideo, InputMediaDocument,  InlineKeyboardMarkup, \
-    InlineKeyboardButton,  InputFile, InputMediaAudio, LinkPreviewOptions, \
-    InputMediaAnimation
 import traceback
-from pydoc import html
 
 import telebot
-from telebot.types import InputMediaPhoto, InputMediaVideo, InputMediaDocument, InputMediaAudio
+from telebot.types import InputMediaVideo, InputMediaDocument
 
-from loader import bot, GROUP_ID, DEVELOPER_ID, ADMINS, db_path, prefix_folder
+from test_bot.loader import DEVELOPER_ID, ADMINS, db_path, prefix_folder
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton, InputMediaPhoto
 
 
-from loader import bot
-from utils.translator import translator_create_or_update
+from test_bot.loader import bot
+from test_bot.utils.translator import translator_create_or_update
 
 
 class AdminStates(StatesGroup):

@@ -1,60 +1,27 @@
 import asyncio
 # TEST
-import copy
-import html
-import inspect
-import json
-import logging
-import traceback
-from datetime import timedelta, datetime, timezone
-from decimal import Decimal, ROUND_HALF_UP
+from datetime import timedelta
 
-from io import StringIO
-from pathlib import Path
 from zoneinfo import ZoneInfo
 
-import aiofiles
-import aiosqlite
-import pytz
-import telebot
-import os
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-import pandas as pd
-from telebot.asyncio_helper import ApiTelegramException
 from telebot.states.asyncio.middleware import StateMiddleware
 from telebot import asyncio_filters
-from telebot.async_telebot import AsyncTeleBot
-from telebot.asyncio_storage import StateMemoryStorage
-from telebot.states import StatesGroup, State
-from telebot.states.asyncio import StateContext
-from telebot.types import InputMediaPhoto, InputMediaVideo, InputMediaDocument,  InlineKeyboardMarkup, \
-    InlineKeyboardButton,  InputFile, InputMediaAudio, LinkPreviewOptions, \
-    InputMediaAnimation
-from telebot.types import MessageEntity
-from middlewares.album import AlbumMiddleware
-from middlewares.ban import BanMiddleware
-from middlewares.db import DatabaseMiddleware
-from middlewares.silent import SilentMiddleware
-from middlewares.silent import silent_users
-from loader import db_path,weekend,latehour,send_weekend_users,send_latehour_users,WORK_CHAT_FILE,state_storage
-from middlewares.timeout import UserTimeChecker, user_data, group_data
-from fluentogram import FluentTranslator, TranslatorHub
-from fluent_compiler.bundle import FluentBundle
-from quart import Quart, request, jsonify
+from test_bot.middlewares.album import AlbumMiddleware
+from test_bot.middlewares.ban import BanMiddleware
+from test_bot.middlewares.db import DatabaseMiddleware
+from test_bot.middlewares.silent import SilentMiddleware
+from test_bot.middlewares.timeout import UserTimeChecker
 # from quart_cors import cors
-from hypercorn.asyncio import serve
-from hypercorn.config import Config
 # убираем ipv6
-import socket
-import handlers
-from utils.calc import update_rates
-from utils.checker import checker
-from utils.db import init_db
-from loader import bot, conflicted_commands, WORK_CHAT_FILE, ADMINS, prefix_folder, DEVELOPER_ID, GROUP_ID, \
+from test_bot.utils.calc import update_rates
+from test_bot.utils.checker import checker
+from test_bot.utils.db import init_db
+from test_bot.loader import bot, GROUP_ID, \
     is_weekend_have, is_latehour_have
-from utils.disable_ipv6 import disable_ipv6
-from utils.logging import setup_logging
-from utils.translator import _, translator_create_or_update
+from test_bot.utils.disable_ipv6 import disable_ipv6
+from test_bot.utils.logging import setup_logging
+from test_bot.utils.translator import _
 
 disable_ipv6()
 

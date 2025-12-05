@@ -15,7 +15,6 @@ import telebot
 import os
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import pandas as pd
-from telebot.asyncio_helper import ApiTelegramException
 from telebot.states.asyncio.middleware import StateMiddleware
 from telebot import asyncio_filters
 from telebot.async_telebot import AsyncTeleBot
@@ -23,22 +22,14 @@ from telebot.asyncio_storage import StateMemoryStorage
 from telebot.states import StatesGroup, State
 from telebot.states.asyncio import StateContext
 from telebot.types import InputMediaPhoto, InputMediaVideo, InputMediaDocument,  InlineKeyboardMarkup, \
-    InlineKeyboardButton,  InputFile, InputMediaAudio, LinkPreviewOptions, \
-    InputMediaAnimation
+    InlineKeyboardButton, InputMediaAudio, InputMediaAnimation
 from telebot.types import MessageEntity
-from middlewares.album import AlbumMiddleware
-from middlewares.db import DatabaseMiddleware
-from decimal import ROUND_HALF_UP, Decimal
-from pathlib import Path
-from enum import StrEnum
-from orjson import loads
-from middlewares.timeout import UserTimeChecker, user_data, group_data
+from test_bot.middlewares.album import AlbumMiddleware
+from test_bot.middlewares.db import DatabaseMiddleware
+from test_bot.middlewares.timeout import UserTimeChecker, user_data, group_data
 from fluentogram import FluentTranslator, TranslatorHub
 from fluent_compiler.bundle import FluentBundle
-from quart import Quart, request, jsonify
 # from quart_cors import cors
-from hypercorn.asyncio import serve
-from hypercorn.config import Config
 
 # убираем ipv6
 import socket

@@ -6,10 +6,10 @@ from jinja2 import Environment, FileSystemLoader
 # Paths
 data_file = "data.json"
 base_template_file = "templates/template.py.j2"
-parasite_template_file = "templates/template_parasite.py.j2"
 output_folder = "output"
 middleware_folder = "middlewares"
 utils_folder = "utils"
+handlers_folder = "handlers"
 # Load data
 with open(data_file, 'r', encoding='utf-8') as file:
     data = json.load(file)
@@ -45,49 +45,47 @@ def find_function_boundaries(content, func_name):
 # Process each bot configuration
 for bot in data['bots']:
     folder_name = bot['Folder_Name']
-    bot_output_folder = os.path.join(output_folder, folder_name)
+    bot_output_folder = os.path.join(output_folder, folder_name) if not bot.get('IsParasite') else os.path.join(output_folder, f"{bot['host_folder']}/parasite")
 
     # Create bot-specific output directory
 
 
-    if bot.get('template_type') == 'parasite':
-        parasite_folder = os.path.join(output_folder, bot['host_folder'])
-        template = env.get_template(os.path.basename(parasite_template_file))
-        final_content = template.render(**bot)
-        try:
-            with open(os.path.join(parasite_folder, "main_parasite.py"), 'w', encoding='utf-8') as main_file:
-                main_file.write(final_content)
-        except Exception as e:
-            print(f"Error writing file for {folder_name}: {str(e)}")
-            continue
-
-
-    else:
-        if not os.path.exists(bot_output_folder):
-            os.makedirs(bot_output_folder)
+    if not os.path.exists(bot_output_folder):
+        os.makedirs(bot_output_folder)
         # For non-Apps bots, just use the base template
-        template = env.get_template(os.path.basename(base_template_file))
-        final_content = template.render(**bot)
+    template = env.get_template(os.path.basename(base_template_file))
+    if bot.get("IsParasite"):
+        bot['Folder_Name'] = bot['host_folder']
+
+    final_content = template.render(**bot)
+    try:
+        with open(os.path.join(bot_output_folder, "loader.py"), 'w', encoding='utf-8') as main_file:
+            main_file.write(final_content)
+    except Exception as e:
+        print(f"Error writing file for {folder_name}: {str(e)}")
+        continue
+    shutil.copyfile("test_bot/main.py", os.path.join(bot_output_folder, "main.py"))
+    shutil.copyfile("test_bot/currency_rate.json", os.path.join(bot_output_folder, "currency_rate.json"))
+    shutil.copyfile("test_bot/main.png", os.path.join(bot_output_folder, "main.png"))
+    if os.path.exists(f"test_bot/{middleware_folder}"):
         try:
-            with open(os.path.join(bot_output_folder, "main.py"), 'w', encoding='utf-8') as main_file:
-                main_file.write(final_content)
+            shutil.copytree(f"test_bot/{middleware_folder}", os.path.join(bot_output_folder, middleware_folder),
+                            dirs_exist_ok=True)
+
         except Exception as e:
-            print(f"Error writing file for {folder_name}: {str(e)}")
-            continue
-        if os.path.exists(middleware_folder):
-            try:
-                shutil.copytree(middleware_folder, os.path.join(bot_output_folder, middleware_folder),
-                                dirs_exist_ok=True)
+            print(f"Error copying middleware for {folder_name}: {str(e)}")
+    if os.path.exists(f"test_bot/{utils_folder}"):
+        try:
+            shutil.copytree(f"test_bot/{utils_folder}", os.path.join(bot_output_folder, utils_folder), dirs_exist_ok=True)
 
-            except Exception as e:
-                print(f"Error copying middleware for {folder_name}: {str(e)}")
-        if os.path.exists(utils_folder):
-            try:
-                shutil.copytree(utils_folder, os.path.join(bot_output_folder, utils_folder), dirs_exist_ok=True)
+        except Exception as e:
+            print(f"Error copying utils for {folder_name}: {str(e)}")
+    if os.path.exists(f"test_bot/{handlers_folder}"):
+        try:
+            shutil.copytree(f"test_bot/{handlers_folder}", os.path.join(bot_output_folder, handlers_folder), dirs_exist_ok=True)
 
-            except Exception as e:
-                print(f"Error copying utils for {folder_name}: {str(e)}")
-
+        except Exception as e:
+            print(f"Error copying utils for {folder_name}: {str(e)}")
     # Write the rendered content to main.py
 
 

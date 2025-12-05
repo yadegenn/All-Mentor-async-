@@ -1,6 +1,6 @@
 import traceback
 
-from loader import bot, GROUP_ID, DEVELOPER_ID
+from test_bot.loader import bot, GROUP_ID, DEVELOPER_ID
 
 
 @bot.message_reaction_handler(func=lambda message: True)

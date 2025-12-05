@@ -2,8 +2,8 @@ import traceback
 
 import telebot
 
-from loader import GROUP_ID, bot, DEVELOPER_ID
-from utils.markup_sources import get_content_data
+from test_bot.loader import GROUP_ID, bot, DEVELOPER_ID
+from test_bot.utils.markup_sources import get_content_data
 
 group_func=lambda message: message.chat.id == int(GROUP_ID)
 

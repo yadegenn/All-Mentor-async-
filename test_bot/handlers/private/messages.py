@@ -3,14 +3,14 @@ from pydoc import html
 
 import telebot
 from telebot.types import InputMediaPhoto, InputMediaVideo, InputMediaDocument, InputMediaAudio
-from ...loader import bot, GROUP_ID, DEVELOPER_ID, weekend,latehour,send_weekend_users,send_latehour_users
+from ...loader import bot, GROUP_ID, DEVELOPER_ID
 from ...utils.formats import caption_messages, text_message_format
 from ...utils.markup_sources import get_content_data
 
 
 @bot.message_handler(content_types=telebot.util.content_type_media, func=lambda message: message.chat.type == "private" )
 async def private_messages(message, album: list = None, db=None, new_topic_id=None):
-    global weekend, latehour, send_weekend_users, send_latehour_users
+    # global weekend, latehour, send_weekend_users, send_latehour_users
     func = None
     attempt = {}
 
@@ -21,14 +21,14 @@ async def private_messages(message, album: list = None, db=None, new_topic_id=No
         chat_id = message.chat.id
         reply_message_id = None
 
-        # проверки
-        if(weekend and message.chat.id not in send_weekend_users):
-            await bot.reply_to(message,"Сегодня вам могут не ответить, так как у сервиса выходной.")
-            send_weekend_users.append(message.chat.id)
-        else:
-            if(latehour and message.chat.id not in send_latehour_users):
-                await bot.reply_to(message,"Сегодня вам уже могут не ответить, так как после 19:00 по московскому времени посредники не работают.")
-                send_latehour_users.append(message.chat.id)
+        # # проверки
+        # if(weekend and message.chat.id not in send_weekend_users):
+        #     await bot.reply_to(message,"Сегодня вам могут не ответить, так как у сервиса выходной.")
+        #     send_weekend_users.append(message.chat.id)
+        # else:
+        #     if(latehour and message.chat.id not in send_latehour_users):
+        #         await bot.reply_to(message,"Сегодня вам уже могут не ответить, так как после 19:00 по московскому времени посредники не работают.")
+        #         send_latehour_users.append(message.chat.id)
 
 
         if (message.reply_to_message):

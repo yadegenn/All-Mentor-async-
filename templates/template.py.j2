@@ -1,23 +1,24 @@
+from datetime import timedelta
 from pathlib import Path
-
 from telebot.async_telebot import AsyncTeleBot
 from telebot.asyncio_storage import StateMemoryStorage
 GROUP_ID = {{ GROUP_CHAT_ID }}
+TOKEN = '{{ API_TOKEN }}'
 prefix_folder = '{{Folder_Name}}/'
 db_path = f"{prefix_folder}bot.db"
 WORK_CHAT_FILE = f'{prefix_folder}work_chat.txt'
 DEVELOPER_ID = 5434361630
 ADMINS = [5434361630,6929772573]
-is_weekend_have = {{ IsCheckDays }}
-is_latehour_have = {{ IsCheckHours }}
-is_photo_start = {{ IsPhotoStart }}
+# is_weekend_have = False
+# is_latehour_have = True
+# is_photo_start = True
 is_parasite = {{ IsParasite }}
-weekend = False
-latehour = False
+is_weekday_period = {{ IsWeekPeriod }}
+# weekend = False
+# latehour = False
 send_weekend_users = []
 send_latehour_users = []
-conflicted_commands = ['/calc','/card','/crypto',"/info","/silent","/ban"]
+conflicted_commands = ['/calc','/card','/crypto',"/info","/silent",'/ban']
 JSON_PATH = Path(f"{prefix_folder}currency_rate.json")
-TOKEN = '{{ API_TOKEN }}'
 state_storage = StateMemoryStorage()
 bot = AsyncTeleBot(TOKEN, state_storage=state_storage)

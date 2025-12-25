@@ -7,6 +7,8 @@ from zoneinfo import ZoneInfo
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from telebot.states.asyncio.middleware import StateMiddleware
 from telebot import asyncio_filters
+
+from .middlewares.spam_control import RateLimitMiddleware
 from .middlewares.album import AlbumMiddleware
 from .middlewares.ban import BanMiddleware
 from .middlewares.db import DatabaseMiddleware
@@ -15,10 +17,9 @@ from .middlewares.timeout import UserTimeChecker
 # from quart_cors import cors
 # убираем ipv6
 from .utils.calc import update_rates
-from .utils.checker import checker
-from .utils.db import init_db
-from .loader import bot, GROUP_ID, \
-    is_weekend_have, is_latehour_have,db_path
+from .utils.checker import checker, init_checker
+from .utils.db import init_db, get_all_user_week_period
+from .loader import bot, GROUP_ID,db_path
 from .utils.disable_ipv6 import disable_ipv6
 from .utils.logging import setup_logging
 from .utils.translator import _
@@ -53,7 +54,7 @@ async def main():
     bot.setup_middleware(BanMiddleware(db_object, bot, GROUP_ID))
     bot.setup_middleware(AlbumMiddleware())
     bot.setup_middleware(SilentMiddleware())
-
+    await init_checker(await get_all_user_week_period(db_object))
     while True:
         try:
             if scheduler.running == False:

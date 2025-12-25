@@ -4,8 +4,10 @@ from datetime import datetime
 from telebot.asyncio_handler_backends import BaseMiddleware
 from telebot.types import Message, MessageReactionUpdated
 
+from ..loader import db_path
 from ..utils.waits_func import weekday_personal
-from ..utils.db import init_db
+from ..utils.db import init_db, add_user_week_period
+
 user_reminder = {}
 user_weekday_period = {}
 class UserTimeChecker(BaseMiddleware):
@@ -40,7 +42,9 @@ class UserTimeChecker(BaseMiddleware):
                 user_reminder[str(message.chat.id)] = datetime.now()
             if str(message.chat.id) not in user_weekday_period and not text.startswith("/"):
                 await weekday_personal(message)
-                user_weekday_period[str(message.chat.id)] = datetime.now()
+                time_now = datetime.now()
+                await add_user_week_period(await init_db(db_path), str(message.chat.id), time_now)
+                user_weekday_period[str(message.chat.id)] = time_now
         #     if topic_id:
         #         if str(topic_id) not in group_data and not text.startswith("/") and message.content_type == "text":
         #             group_data[str(topic_id)] = datetime.now()

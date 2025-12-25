@@ -22,6 +22,9 @@ class User:
     reg_date: datetime
 
 
+
+
+
 class DatabaseMiddleware(BaseMiddleware):
     def __init__(self, db: aiosqlite.Connection, bot: AsyncTeleBot, group_id: int):
         super().__init__()
@@ -60,12 +63,7 @@ class Database:
 
             return [User(chat_id, topic_id, nickname,username,False if is_ban==0 else True,reg_date) for chat_id, topic_id, nickname,username,is_ban,reg_date  in rows]
 
-    # async def add_or_update_user(self, user_name: str, topic_id: int):
-    #     await self.db.execute('''
-    #         INSERT OR REPLACE INTO users (chat_id, topic_id, user_name)
-    #         VALUES (?, ?, ?)
-    #     ''', (self.chat_id, topic_id, user_name))
-    #     await self.db.commit()
+
 
     async def get_or_create_topic(self, is_thread_not = False) -> int:
         async with self._global_lock:

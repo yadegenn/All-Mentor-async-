@@ -1,8 +1,14 @@
 from fluent_compiler.bundle import FluentBundle
 from fluentogram import TranslatorHub, FluentTranslator
-
 from ..loader import prefix_folder
+test_file_ids = {
+    "start_message-file_id": "AgACAgIAAxkBAAIBBWklkdEyA6Mry-AZ4RyOtZXlRNWoAALdDGsbwAkxSYTWg-Hn0ifHAQADAgADeQADNgQ",
+    "faq-img_paypal_beatstars": "AgACAgIAAxkBAAIBB2klkfrKKmqiztLVU6ktT715BDBCAALeDGsbwAkxSQpU7DIkU-NzAQADAgADeQADNgQ",
+    "faq-img_bs_wallet": "AgACAgIAAxkBAAIBCWklkhStnnBNIOYjqJl2HNEvFvSgAALfDGsbwAkxSZNBAAGpb0ULHwEAAwIAA3kAAzYE",
+    "monetization-img_youtube": "AgACAgIAAxkBAAJ-IWkhjY-AyJ8_QfeVgBPfy2S5DLICAAI5DWsbp4MISfEXhZkolYCHAQADAgADeQADNgQ",
+    "monetization-img_tiktok": "AgACAgIAAxkBAAIBBWklkdEyA6Mry-AZ4RyOtZXlRNWoAALdDGsbwAkxSYTWg-Hn0ifHAQADAgADeQADNgQ",
 
+}
 translator_hub = None
 
 def translator_create_or_update():

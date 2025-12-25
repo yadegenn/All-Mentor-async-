@@ -21,7 +21,7 @@ start_message = <a href="http://t.me/OutcastExchanger"><b>Outcast Exchanger</b><
     Множество прогретых пэйпалов и счетовㅤㅤㅤㅤㅤ
     Более 3 лет стабильной работы
     <a href="http://t.me/OutcastExchanger"><b>Наш основной обменник</b></a></blockquote>ㅤ
-start_message-file_id = AgACAgIAAxkBAAMFaScx_VSseFzsV99chIpu0sBdeDsAArsMaxsItEFJoLLe7b6nx3gBAAMCAAN5AAM2BA
+start_message-file_id = AgACAgIAAxkBAAIBBWklkdEyA6Mry-AZ4RyOtZXlRNWoAALdDGsbwAkxSYTWg-Hn0ifHAQADAgADeQADNgQ
 
 start_reply = <blockquote>Инфо выше — пишите в чат, если нужно получить перевод, сделать ссылку на оплату или подключить битстарс</blockquote>
 
@@ -279,7 +279,7 @@ faq-img_transfer_countries= { start_message-file_id }
 faq-txt_transfer_countries = Вывод на карту доступен для стран: Россия, Украина, Казахстан и Узбекистан.
 
 faq-btn_paypal_beatstars = Подключение PayPal к BeatStars
-faq-img_paypal_beatstars = AgACAgIAAxkBAAMHaScyCnJ-Gy9CBXW_bKA8_G7jmI8AAr0MaxsItEFJU9d3D_lU8TMBAAMCAAN5AAM2BA
+faq-img_paypal_beatstars = AgACAgIAAxkBAAIBB2klkfrKKmqiztLVU6ktT715BDBCAALeDGsbwAkxSQpU7DIkU-NzAQADAgADeQADNgQ
 faq-txt_paypal_beatstars = ❌  Без подключенного пэйпала, ваши продажи попадут на удержание 180 дней, в течении которого вы не сможете их вывести, а так же заплатите комиссию 10%.
 
     ✅  <b><u>Решение</u></b>
@@ -306,7 +306,7 @@ faq-txt_paypal_beatstars = ❌  Без подключенного пэйпала
     Ежемесячный доход -</pre>
 
 faq-btn_bs_wallet = Как вывести из BeatStars Wallet
-faq-img_bs_wallet = AgACAgIAAxkBAAMJaScyI5PJdz3ow1DYBSzdCIAOOTEAAr8MaxsItEFJSlXifKu3vfEBAAMCAAN5AAM2BA
+faq-img_bs_wallet = AgACAgIAAxkBAAIBCWklkhStnnBNIOYjqJl2HNEvFvSgAALfDGsbwAkxSZNBAAGpb0ULHwEAAwIAA3kAAzYE
 faq-txt_bs_wallet = <b>Как вывести деньги из BeatStars Wallet</b>
 
     Если у вас есть деньги на внутреннем кошельке, то можете вывести их на наш PayPal.

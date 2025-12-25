@@ -3,26 +3,32 @@ from datetime import datetime, timedelta
 
 import pytz
 
+from .db import delete_user_week_period
+from ..utils.db import init_db
 from .waits_func import scheduled_reminder, weekday_personal
 from ..middlewares.timeout import user_reminder, user_weekday_period
-from ..loader import weekend, latehour, bot, is_weekend_have, is_latehour_have
+from ..loader import bot, is_weekday_period, db_path
 from ..utils.translator import _
 
+
+
+async def init_checker(list_week_periods: list):
+    for i in list_week_periods:
+        user_weekday_period[str(i.chat_id)] = datetime.fromisoformat(i.date)
 
 rules_checker = [
     {"type": "reminder",
      "timeout": timedelta(seconds=int(_("sheduled_time")) if _("sheduled_time").isdigit() else 0),
-     "action": scheduled_reminder},
-    {"type": "periodic_weekday",
-         "timeout": timedelta(seconds=int(_("periodic_weekday_time")) if _("periodic_weekday_time").isdigit() else 0),
-         "action": weekday_personal}
+     "action": scheduled_reminder}
 ]
-# rules_checker.append({"type": "weekend", "day": 5} if is_weekend_have else {"type": "none"})
+rules_checker.append({"type": "periodic_weekday",
+         "timeout": timedelta(seconds=int(_("periodic_weekday_time")) if _("periodic_weekday_time").isdigit() else 0),
+         "action": weekday_personal} if is_weekday_period else {"type": "none"})
 # rules_checker.append({"type": "weekend", "day": 6} if is_weekend_have else {"type": "none"})
 # rules_checker.append({"type": "latehour", "hour": 19} if is_latehour_have else {"type": "none"})
 
 async def checker():
-    global weekend, latehour,rules_checker
+    global rules_checker
     for i in rules_checker:
         rules = i
         rule_type = rules["type"]
@@ -41,13 +47,15 @@ async def checker():
         if (rule_type == "periodic_weekday"):
 
             rule_timeout = rules["timeout"]
-            for i in copy.deepcopy(user_reminder):
-                if (user_reminder[i] == "delete"):
-                    del user_reminder[i]
-                elif (isinstance(user_reminder[i], datetime)):
-                    timeout_date = user_reminder[i] + rule_timeout
+            for i in copy.deepcopy(user_weekday_period):
+                if (user_weekday_period[i] == "delete"):
+                    await delete_user_week_period(await init_db(db_path), i)
+                    del user_weekday_period[i]
+                elif (isinstance(user_weekday_period[i], datetime)):
+                    timeout_date = user_weekday_period[i] + rule_timeout
                     if (timeout_date <= datetime.now()):
-                        del user_reminder[i]
+                        await delete_user_week_period(await init_db(db_path), i)
+                        del user_weekday_period[i]
         # elif (rule_type == "group"):
         #     rule_timeout = rules["timeout"]
         #     rule_action = rules["action"]

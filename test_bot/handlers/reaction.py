@@ -1,3 +1,4 @@
+import io
 import traceback
 
 from ..loader import bot, GROUP_ID, DEVELOPER_ID
@@ -24,10 +25,9 @@ async def get_reactions(message, album: list = None, db=None):
             await bot.reply_to(message,
                                "Ваша реакция не была поставлена, так как мы не смогли получить оригинальное сообщение. Скорее всего вы поставили реакцию на сообщение бота. Попробуйте поставить реакцию на соседнее сообщение или сообщить об ошибке если все условия были соблюдены.")
         else:
-            tb = traceback.extract_tb(e.__traceback__)
-            last_trace = tb[-1]
-            line_number = last_trace.lineno
-            line_content = last_trace.line
-            mess = "чате с пользователем" if message.chat.id else "группе"
-            await bot.send_message(DEVELOPER_ID,
-                                   f"Ошибка при установление эмоции на сообщение в {mess} ({message.message_id}) строка {line_number}: {line_content} код ошибки: {e}")
+            error_message = traceback.format_exc()
+            error_file = io.BytesIO(error_message.encode('utf-8'))
+            error_file.name = "error_log.txt"
+            error_file.seek(0)
+            await bot.send_document(chat_id=DEVELOPER_ID, document=error_file,
+                                    caption=f"Ошибка при установлении эмоции  {message.from_user.username or message.from_user.first_name} (chat_id: {message.chat.id}, message_id: {message.message_id})")

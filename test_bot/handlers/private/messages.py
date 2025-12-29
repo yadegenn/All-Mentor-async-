@@ -1,3 +1,4 @@
+import io
 import traceback
 from pydoc import html
 
@@ -17,7 +18,9 @@ async def private_messages(message, album: list = None, db=None, new_topic_id=No
 
     try:
         user_data = await db.get_user_by_chat_id()
+
         topic_id = await db.get_or_create_topic()
+
         chat_id = message.chat.id
         reply_message_id = None
 
@@ -99,10 +102,9 @@ async def private_messages(message, album: list = None, db=None, new_topic_id=No
             await private_messages(message,album,db, new_topic)
 
         else:
-            tb = traceback.extract_tb(e.__traceback__)
-            last_trace = tb[-1]
-            line_number = last_trace.lineno
-            line_content = last_trace.line
-            await bot.send_message(DEVELOPER_ID,
-                                   f"Ошибка при отправке сообщения от пользователя ({message.chat.id}) строка {line_number}: {line_content} код ошибки: {e}")
+            error_message = traceback.format_exc()
+            error_file = io.BytesIO(error_message.encode('utf-8'))
+            error_file.name = "error_log.txt"
+            error_file.seek(0)
+            await bot.send_document(chat_id=DEVELOPER_ID,document=error_file,caption=f"Ошибка при отправке сообщения от пользователя  {message.from_user.username or message.from_user.first_name} ({message.chat.id})")
 

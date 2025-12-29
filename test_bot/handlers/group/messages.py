@@ -1,3 +1,4 @@
+import io
 import traceback
 
 import telebot
@@ -51,9 +52,9 @@ async def group_messages(message, album: list = None, db=None):
         elif "bot was blocked by the user" in str(e):
             await bot.reply_to(message, "Ваше сообщение не было доставлено, пользователь заблокировал бота")
         else:
-            tb = traceback.extract_tb(e.__traceback__)
-            last_trace = tb[-1]
-            line_number = last_trace.lineno
-            line_content = last_trace.line
-            await bot.send_message(DEVELOPER_ID,
-                                   f"Ошибка при отправке сообщения от посредника в теме ({message.message_thread_id}) строка {line_number}: {line_content} код ошибки: {e}")
+            error_message = traceback.format_exc()
+            error_file = io.BytesIO(error_message.encode('utf-8'))
+            error_file.name = "error_log.txt"
+            error_file.seek(0)
+            await bot.send_document(chat_id=DEVELOPER_ID, document=error_file,
+                                    caption=f"Ошибка при отправке сообщения от посредника  {message.from_user.username or message.from_user.first_name} (message_thread_id: {message.message_thread_id}")

@@ -1,4 +1,5 @@
 import asyncio
+import io
 from io import StringIO
 
 import aiofiles
@@ -11,7 +12,7 @@ import traceback
 import telebot
 from telebot.types import InputMediaVideo, InputMediaDocument
 
-from ...loader import DEVELOPER_ID, ADMINS, db_path, prefix_folder
+from ...loader import DEVELOPER_ID, ADMINS, prefix_folder, pool
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton, InputMediaPhoto
 
 
@@ -27,37 +28,39 @@ class AdminStates(StatesGroup):
 @bot.message_handler(commands=['admin'], func=lambda message: message.chat.type == "private" )
 async def handle_admin(message):
     if message.chat.id in ADMINS:
-        db_main = await aiosqlite.connect(db_path)
-        user_count = None
-        async with db_main.execute('SELECT COUNT(*) FROM users') as cursor:
-            row = await cursor.fetchone()
-            if(row):
-                user_count = row[0]
-        markup = InlineKeyboardMarkup(
-            [
-                [
-                    InlineKeyboardButton("Данные:", callback_data="front"),
-                ],
-                [
-                    InlineKeyboardButton("Получить", callback_data="get_data"),
-                    InlineKeyboardButton("Загрузить", callback_data="upload_data")
-                ],
-                [
-                    InlineKeyboardButton("Разметка:",callback_data="front"),
-                ],
-                [
-                    InlineKeyboardButton("Получить", callback_data="get_front"),
-                    InlineKeyboardButton("Загрузить", callback_data="upload_front"),
-                    InlineKeyboardButton("Откатить", callback_data="last_front")
-                ],
-                [
-                    InlineKeyboardButton("Рассылка", callback_data="broadcast")
-                ]
-            ],
-            3
-        )
 
-        await bot.send_message(message.chat.id, f"Админ панель\nКоличество пользователей: {user_count}", reply_markup=markup)
+        user_count = None
+        async with pool.connection() as conn:
+            async with conn.cursor() as cur:
+                await cur.execute('SELECT COUNT(*) FROM users')
+                row = await cur.fetchone()
+                if(row):
+                    user_count = row[0]
+                markup = InlineKeyboardMarkup(
+                    [
+                        [
+                            InlineKeyboardButton("Данные:", callback_data="front"),
+                        ],
+                        [
+                            InlineKeyboardButton("Получить", callback_data="get_data"),
+                            InlineKeyboardButton("Загрузить", callback_data="upload_data")
+                        ],
+                        [
+                            InlineKeyboardButton("Разметка:",callback_data="front"),
+                        ],
+                        [
+                            InlineKeyboardButton("Получить", callback_data="get_front"),
+                            InlineKeyboardButton("Загрузить", callback_data="upload_front"),
+                            InlineKeyboardButton("Откатить", callback_data="last_front")
+                        ],
+                        [
+                            InlineKeyboardButton("Рассылка", callback_data="broadcast")
+                        ]
+                    ],
+                    3
+                )
+
+                await bot.send_message(message.chat.id, f"Админ панель\nКоличество пользователей: {user_count}", reply_markup=markup)
     else:
         await bot.send_message(message.chat.id, "У вас нет доступа к этой команде.")
 
@@ -66,19 +69,20 @@ async def handle_admin(message):
 async def handle_admin_callback(call, state: StateContext):
     if call.message.chat.id in ADMINS:
         if call.data == "get_data":
-            db_main = await aiosqlite.connect(db_path)
-            async with db_main.execute('SELECT * FROM users') as cursor:
-                rows = await cursor.fetchall()
+            async with pool.connection() as conn:
+                async with conn.cursor() as cursor:
+                    await cursor.execute('SELECT * FROM users')
+                    rows = await cursor.fetchall()
 
-            # Создание DataFrame
-            df = pd.DataFrame(rows, columns=['chat_id', 'topic_id', 'user_name'])
+                    # Создание DataFrame
+                    df = pd.DataFrame(rows, columns=['chat_id', 'topic_id', 'user_name'])
 
-            # Сохранение данных в файл .txt
-            df.to_csv('user_topics.txt', sep=' ', index=False)
+                    # Сохранение данных в файл .txt
+                    df.to_csv('user_topics.txt', sep=' ', index=False)
 
-            # Отправка файла пользователю
-            with open('user_topics.txt', 'rb') as file:
-                await bot.send_document(call.message.chat.id, file)
+                    # Отправка файла пользователю
+                    with open('user_topics.txt', 'rb') as file:
+                        await bot.send_document(call.message.chat.id, file)
         elif call.data == "get_front":
             with open(f'{prefix_folder}locales/ru.ftl', 'rb') as file:
                 await bot.send_document(call.message.chat.id, file)
@@ -174,12 +178,12 @@ async def spam(message, state: StateContext, album=None, db=None):
         elif "chat not found" in str(e):
             pass
         else:
-            tb = traceback.extract_tb(e.__traceback__)
-            last_trace = tb[-1]
-            line_number = last_trace.lineno
-            line_content = last_trace.line
-            await bot.send_message(DEVELOPER_ID,
-                                   f"Ошибка при отправке сообщения от посредника в теме ({message.message_thread_id}) строка {line_number}: {line_content} код ошибки: {e}")
+            error_message = traceback.format_exc()
+            error_file = io.BytesIO(error_message.encode('utf-8'))
+            error_file.name = "error_log.txt"
+            error_file.seek(0)
+            await bot.send_document(chat_id=DEVELOPER_ID, document=error_file,
+                                    caption=f"Ошибка при рассылке")
 
 
 @bot.message_handler(state=AdminStates.upload_data, content_types=['document'])
@@ -201,12 +205,12 @@ async def handle_document(message, state: StateContext):
            df = await asyncio.to_thread(pd.read_csv, StringIO(data), delimiter=' ',
                                       names=['chat_id', 'topic_id', 'user_name'])
            df = df.drop_duplicates(subset=['chat_id', 'topic_id'])
-
-           async with aiosqlite.connect(db_path) as db:
-               await db.execute('DELETE FROM users')
-               await db.executemany('INSERT INTO users (chat_id, topic_id, user_name) VALUES (?, ?, ?)',
-                                  df.values)
-               await db.commit()
+           async with pool.connection() as conn:
+               async with conn.cursor() as cur:
+                   await cur.execute('DELETE FROM users')
+                   await cur.executemany('INSERT INTO users (chat_id, topic_id, user_name) VALUES (?, ?, ?)',
+                                      df.values)
+                   await cur.commit()
 
            await bot.send_message(message.chat.id, "Данные успешно загружены.")
            await state.delete()

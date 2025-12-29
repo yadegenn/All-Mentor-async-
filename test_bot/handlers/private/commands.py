@@ -12,11 +12,16 @@ from ...utils.math_and_types import is_number, quantize
 
 private_func = lambda message: message.chat.type == "private"
 
+@bot.message_handler(commands=['error'], func=private_func)
+async def handle_error(message, album: list = None, db=None, checker=None):
+    raise ValueError("Тестовая ошибка")
+
 @bot.message_handler(commands=['start'], func=private_func)
 async def handle_start(message, album: list = None, db=None, checker=None):
     if db is None:
         await bot.reply_to(message, "Ошибка подключения к базе данных ")
         return
+
     all_users = await db.get_all_users()
     user_name = message.from_user.username or message.from_user.first_name
     if(is_parasite):

@@ -13,17 +13,22 @@ from .middlewares.album import AlbumMiddleware
 from .middlewares.ban import BanMiddleware
 from .middlewares.db import DatabaseMiddleware
 from .middlewares.silent import SilentMiddleware
-from .middlewares.timeout import UserTimeChecker
+from .middlewares.timeout import UserTimeChecker, init_checker
 # from quart_cors import cors
 # убираем ipv6
 from .utils.calc import update_rates
-from .utils.checker import checker, init_checker
+from .utils.checker import checker
 from .utils.db import init_db, get_all_user_week_period
-from .loader import bot, GROUP_ID,db_path
+from .loader import bot, GROUP_ID, db_str, pool
 from .utils.disable_ipv6 import disable_ipv6
 from .utils.logging import setup_logging
 from .utils.translator import _
 from . import handlers
+import psycopg
+from psycopg_pool import AsyncConnectionPool
+
+
+
 disable_ipv6()
 
 # данные
@@ -44,17 +49,18 @@ async def main():
     global db_path
     print("Бот запущен!")
     setup_logging()
-    db_object = await init_db(db_path)
+    await pool.open()
+    db_object = await init_db()
 
     bot.add_custom_filter(asyncio_filters.StateFilter(bot))
     # bot.setup_middleware(RateLimitMiddleware(limit_messages=5,limit_albums=3,time_window=40, bot=bot))
     bot.setup_middleware(StateMiddleware(bot))
-    bot.setup_middleware(UserTimeChecker(GROUP_ID, db_path))
-    bot.setup_middleware(DatabaseMiddleware(db_object, bot, GROUP_ID))
-    bot.setup_middleware(BanMiddleware(db_object, bot, GROUP_ID))
+    bot.setup_middleware(UserTimeChecker(GROUP_ID))
+    bot.setup_middleware(DatabaseMiddleware(bot, GROUP_ID))
+    bot.setup_middleware(BanMiddleware(bot, GROUP_ID))
     bot.setup_middleware(AlbumMiddleware())
     bot.setup_middleware(SilentMiddleware())
-    await init_checker(await get_all_user_week_period(db_object))
+    await init_checker()
     while True:
         try:
             if scheduler.running == False:
@@ -70,7 +76,7 @@ async def main():
                 'chat_member'
             ])
         except Exception as e:
-            await db_object.close()
+            await pool.close()
             if scheduler.running:
                 scheduler.shutdown()
 

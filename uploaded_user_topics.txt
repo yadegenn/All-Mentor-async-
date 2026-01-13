@@ -1,6 +1,2 @@
-chat_id topic_id user_name
-5434361630 1814 yadgenn2
-748524475 1681 leyttt24
-7875501711 1700 P
-612324246 1707 SuckSon
-7745472123 1720 .
+chat_id␟topic_id␟nickname␟username␟is_ban␟reg_date
+5434361630␟7␟yadegenn ␟yadgenn␟0␟2025-12-28 10:08:56.328904+03:00

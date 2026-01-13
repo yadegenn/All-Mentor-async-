@@ -55,10 +55,10 @@ async def main():
     bot.add_custom_filter(asyncio_filters.StateFilter(bot))
     # bot.setup_middleware(RateLimitMiddleware(limit_messages=5,limit_albums=3,time_window=40, bot=bot))
     bot.setup_middleware(StateMiddleware(bot))
+    bot.setup_middleware(AlbumMiddleware())
     bot.setup_middleware(UserTimeChecker(GROUP_ID))
     bot.setup_middleware(DatabaseMiddleware(bot, GROUP_ID))
     bot.setup_middleware(BanMiddleware(bot, GROUP_ID))
-    bot.setup_middleware(AlbumMiddleware())
     bot.setup_middleware(SilentMiddleware())
     await init_checker()
     while True:

@@ -1,5 +1,2 @@
-chat_id topic_id user_name
-5434361630 4649 yadgenn
-6751420253 4663 "Второй аккаунт)"
-6929772573 4666 BeatBusinessCEO
-5230620313 4669 CRichess
+chat_id␟topic_id␟nickname␟username␟is_ban␟reg_date
+5434361630␟7␟yadegenn ␟yadgenn␟0␟2025-12-28 10:08:56.328904+03:00

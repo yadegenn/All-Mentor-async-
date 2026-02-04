@@ -58,10 +58,9 @@ async def edited_message(message, db=None):
                                    "Ваше сообщение не было отредактировано, так как мы не смогли получить оригинальное сообщение. Возможно, оно было удалено пользователем, не успело отправиться или недавно произошло обновление и старые сообщения больше не функциональны. Попробуйте отредактировать это сообщение снова или отредактировать соседнее сообщение. Если все условия были соблюдены и ошибка повторяется, сообщите о ней.")
         elif "specified new message content and reply markup are exactly the same as a current content and reply markup of the message" in str(e):
             pass
-        else:
-            error_message = traceback.format_exc()
-            error_file = io.BytesIO(error_message.encode('utf-8'))
-            error_file.name = "error_log.txt"
-            error_file.seek(0)
-            await bot.send_document(chat_id=DEVELOPER_ID, document=error_file,
-                                    caption=f"Ошибка при редактировании сообщения от пользователя  {message.from_user.username or message.from_user.first_name} (chat_id: {message.chat.id}, message_id: {message.message_id})")
+        error_message = traceback.format_exc()
+        error_file = io.BytesIO(error_message.encode('utf-8'))
+        error_file.name = "error_log.txt"
+        error_file.seek(0)
+        await bot.send_document(chat_id=DEVELOPER_ID, document=error_file,
+                                caption=f"Ошибка при редактировании сообщения от пользователя  {message.from_user.username or message.from_user.first_name} (chat_id: {message.chat.id}, message_id: {message.message_id})")

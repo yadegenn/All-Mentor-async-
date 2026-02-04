@@ -10,12 +10,14 @@ prefix_folder = f"{prefix}/"
 db_str = f"dbname={prefix} user=admin password=E-M_i-LGO0 host=5.129.223.183"
 WORK_CHAT_FILE = f'{prefix_folder}work_chat.txt'
 DEVELOPER_ID = 5434361630
-ADMINS = [5434361630,6929772573]
+ADMINS = [5434361630,6929772573,612324246]
 # is_weekend_have = False
 # is_latehour_have = True
 # is_photo_start = True
 is_parasite = False
 is_weekday_period = False
+is_menu_show = False
+is_scheduled_message = False
 # weekend = False
 # latehour = False
 send_weekend_users = []

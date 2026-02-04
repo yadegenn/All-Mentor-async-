@@ -32,16 +32,11 @@ async def silent(message, db=None):
     await save_silent_users(silent_users)
 
 
-@bot.message_handler(commands=['info', 'i'], func=group_func )
+@bot.message_handler(commands=['info', 'i'], func=group_func)
 async def information_group(message, db=None):
     user_data = await db.get_user_by_topic_id()
-    reg_data = datetime.strptime(user_data.reg_date, '%Y-%m-%d %H:%M:%S.%f')
-    utc_zone = pytz.utc
-    dt_aware_utc = utc_zone.localize(reg_data)
-    moscow_zone = pytz.timezone('Europe/Moscow')
-    dt_moscow = dt_aware_utc.astimezone(moscow_zone)
-    formatted_output = dt_moscow.strftime('%Y-%m-%d %H:%M:%S') + ' UTC+03:00'
+    reg_data = user_data.reg_date
     chat_info = await bot.get_chat(user_data.chat_id)
 
-    await bot.reply_to(message, f"Username: <a href='tg://user?id={user_data.chat_id}'>@{chat_info.username}</a>\nNickname: {user_data.nickname}\nID: {user_data.chat_id}\nЗаблокирован: {'False' if user_data.is_ban==0 else 'True'}\nДата регистрации:\n{formatted_output}",parse_mode='HTML')
+    await bot.reply_to(message, f"Username: <a href='tg://user?id={user_data.chat_id}'>@{chat_info.username}</a>\nNickname: {user_data.nickname}\nID: {user_data.chat_id}\nЗаблокирован: {'False' if user_data.is_ban==0 else 'True'}\nДата регистрации:\n{user_data.reg_date}",parse_mode='HTML')
 

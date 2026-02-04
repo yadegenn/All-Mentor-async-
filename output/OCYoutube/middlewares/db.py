@@ -118,6 +118,7 @@ class Database:
                             await cursor.execute('SELECT MAX(local_id) FROM private_messages WHERE chat_id = %s',(chat_id,))
                             max_local_id = await cursor.fetchone()
                             new_local_id = (max_local_id[0] or 0) + 1
+
                             await cursor.execute('''
                                 INSERT INTO private_messages (chat_id, message_id, local_id)
                                 VALUES (%s, %s, %s)
@@ -169,7 +170,6 @@ class Database:
                                                        (topic_id,))
                             max_local_id = await cursor.fetchone()
                             new_local_id = (max_local_id[0] or 0) + 1
-
                             # Вставляем новое сообщение в group_messages
                             await cursor.execute('''
                                 INSERT INTO group_messages (topic_id, message_id, local_id)
@@ -181,7 +181,6 @@ class Database:
                                                    (topic_id,))
                         max_local_id = await cursor.fetchone()
                         new_local_id = (max_local_id[0] or 0) + 1
-
                         # Вставляем новое сообщение в group_messages
                         await cursor.execute('''
                             INSERT INTO group_messages (topic_id, message_id, local_id)

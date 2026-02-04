@@ -1,4 +1,6 @@
 import asyncio
+import time
+from collections import deque
 # TEST
 from datetime import timedelta
 
@@ -8,6 +10,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from telebot.states.asyncio.middleware import StateMiddleware
 from telebot import asyncio_filters
 
+from .handlers.private.messages import GlobalQueueManager, manager
 from .middlewares.spam_control import RateLimitMiddleware
 from .middlewares.album import AlbumMiddleware
 from .middlewares.ban import BanMiddleware
@@ -60,9 +63,12 @@ async def main():
     bot.setup_middleware(DatabaseMiddleware(bot, GROUP_ID))
     bot.setup_middleware(BanMiddleware(bot, GROUP_ID))
     bot.setup_middleware(SilentMiddleware())
+    worker_task = asyncio.create_task(manager.start_worker())
     await init_checker()
     while True:
         try:
+            if worker_task.done():
+                worker_task = asyncio.create_task(manager.start_worker())
             if scheduler.running == False:
                 scheduler.start()
             await bot.infinity_polling(allowed_updates=[
@@ -77,6 +83,7 @@ async def main():
             ])
         except Exception as e:
             await pool.close()
+            worker_task.cancel()
             if scheduler.running:
                 scheduler.shutdown()
 

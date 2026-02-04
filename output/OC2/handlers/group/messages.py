@@ -57,4 +57,4 @@ async def group_messages(message, album: list = None, db=None):
             error_file.name = "error_log.txt"
             error_file.seek(0)
             await bot.send_document(chat_id=DEVELOPER_ID, document=error_file,
-                                    caption=f"Ошибка при отправке сообщения от посредника  {message.from_user.username or message.from_user.first_name} (message_thread_id: {message.message_thread_id}")
+                                    caption=f"Ошибка при отправке сообщения от посредника  {message.from_user.username or message.from_user.first_name} (message_thread_id: {message.message_thread_id})")

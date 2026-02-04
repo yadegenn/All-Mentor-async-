@@ -1,0 +1,11 @@
+aiofiles==25.1.0
+aiosqlite==0.22.1
+apscheduler==3.11.2
+fluent_compiler==1.1
+fluentogram==1.2.1
+pandas==2.3.3
+psycopg==3.3.2
+psycopg_pool==3.3.0
+pyTelegramBotAPI==4.29.1
+pytz==2025.2
+Requests==2.32.5

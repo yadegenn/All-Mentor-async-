@@ -1,15 +1,18 @@
+import asyncio
+import threading
 from typing import Optional
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
-from telebot.asyncio_handler_backends import BaseMiddleware
+from telebot.asyncio_handler_backends import BaseMiddleware, ContinueHandling, CancelUpdate
 from telebot.types import Message, MessageReactionUpdated
 
 from ..loader import pool
 from ..utils.waits_func import weekday_personal
 from ..utils.db import init_db, add_user_week_period, get_all_user_week_period
-
 user_reminder = {}
 user_weekday_period = {}
+processing_lock = asyncio.Lock()
 async def init_checker():
     for i in await get_all_user_week_period():
         user_weekday_period[str(i.chat_id)] = i.date
@@ -36,18 +39,31 @@ class UserTimeChecker(BaseMiddleware):
         #     await self.process_message_reaction(update)
 
     async def process_message(self, message: Message):
-        await init_checker()
+        global processing_lock
         if message.chat.type == "private":
             text = getattr(message, 'text', None) or ""
             # topic_id = await self.get_topic_id_by_chat_id(message.chat.id)
 
+
             if str(message.chat.id) not in user_reminder and text.startswith("/start"):
                 user_reminder[str(message.chat.id)] = datetime.now()
-            if str(message.chat.id) not in user_weekday_period and not text.startswith("/"):
-                await weekday_personal(message)
-                time_now = datetime.now()
-                await add_user_week_period(str(message.chat.id), time_now)
-                user_weekday_period[str(message.chat.id)] = time_now
+            async with processing_lock:
+                if str(message.chat.id) not in user_weekday_period and not text.startswith("/"):
+                    await init_checker()
+                    await weekday_personal(message)
+                    time_now = datetime.now(ZoneInfo("Europe/Moscow"))
+                    await add_user_week_period(str(message.chat.id), time_now)
+                    user_weekday_period[str(message.chat.id)] = time_now
+                    # if str(message.chat.id) in user_weekday_period:
+                    #     user_weekday_period[str(message.chat.id)]['processing'] = False
+
+                # if user_weekday_period[str(message.chat.id)].get('processing', False):
+                #     print("проверка процесса")
+                #     return ContinueHandling()
+
+                # print("добавляем статуст")
+                # user_weekday_period[str(message.chat.id)]['processing'] = True
+                # print("поставили процессинг true")
 
         #     if topic_id:
         #         if str(topic_id) not in group_data and not text.startswith("/") and message.content_type == "text":

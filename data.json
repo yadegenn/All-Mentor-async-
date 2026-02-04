@@ -1,54 +1,6 @@
 {
   "bots": [
     {
-      "Folder_Name": "OCPayPal1",
-      "API_TOKEN": "7317645641:AAHj_E462Lz9hUakAb3etWX5j3IG1gnZqB4",
-      "GROUP_CHAT_ID": "-1002221362102",
-      "IsParasite": false,
-      "IsWeekPeriod": false,
-      "IsCheckHours": true,
-      "IsCheckDays": true,
-      "IsPhotoStart": true,
-      "IsAutoResponse": false,
-      "template_type": "default"
-    },
-    {
-      "Folder_Name": "OCPayPal2",
-      "API_TOKEN": "7416513076:AAFJbZD4NYxw4r_2XU5c1KWOANR4rZHVU0I",
-      "GROUP_CHAT_ID": "-1002243300312",
-      "IsParasite": false,
-      "IsWeekPeriod": false,
-      "IsCheckHours": true,
-      "IsCheckDays": true,
-      "IsPhotoStart": true,
-      "IsAutoResponse": false,
-      "template_type": "default"
-    },
-    {
-      "Folder_Name": "OCPayPal3",
-      "API_TOKEN": "6712169314:AAFDPiRpYsBk9FBe5jVUuwHykhZpQw9HqRQ",
-      "GROUP_CHAT_ID": "-1002227671643",
-      "IsParasite": false,
-      "IsWeekPeriod": false,
-      "IsCheckHours": true,
-      "IsCheckDays": true,
-      "IsPhotoStart": true,
-      "IsAutoResponse": false,
-      "template_type": "default"
-    },
-    {
-      "Folder_Name": "OCPayPal4",
-      "API_TOKEN": "7098005146:AAFR03IN6vzY9ehJDu6U9WTJbzwrwGyPEak",
-      "GROUP_CHAT_ID": "-1002178852941",
-      "IsParasite": false,
-      "IsWeekPeriod": false,
-      "IsCheckHours": true,
-      "IsCheckDays": true,
-      "IsPhotoStart": true,
-      "IsAutoResponse": false,
-      "template_type": "default"
-    },
-    {
       "Folder_Name": "OCSub",
       "API_TOKEN": "6970295952:AAFxMXFiRH4sw1V1DeCG1PTCDHSkzfm0Or4",
       "GROUP_CHAT_ID": "-1002150917285",
@@ -58,42 +10,8 @@
       "IsCheckDays": false,
       "IsPhotoStart": true,
       "IsAutoResponse": true,
-      "template_type": "default"
-    },
-    {
-      "Folder_Name": "outcast-support",
-      "API_TOKEN": "7002888323:AAFB9LM03iZbqxmF80IV3YU3vJYaHFMgf5k",
-      "GROUP_CHAT_ID": "-1002048973694",
-      "IsParasite": false,
-      "IsWeekPeriod": false,
-      "IsCheckHours": true,
-      "IsCheckDays": true,
-      "IsPhotoStart": false,
-      "IsAutoResponse": false,
-      "template_type": "default"
-    },
-    {
-      "Folder_Name": "OCOther",
-      "API_TOKEN": "7422804332:AAFggHHLbKW0owmHss_yeb8J5jW_BkjW3cw",
-      "GROUP_CHAT_ID": "-1002235153000",
-      "IsParasite": false,
-      "IsWeekPeriod": false,
-      "IsCheckHours": false,
-      "IsCheckDays": false,
-      "IsPhotoStart": true,
-      "IsAutoResponse": false,
-      "template_type": "default"
-    },
-    {
-      "Folder_Name": "OCDirect",
-      "API_TOKEN": "7033745824:AAE8CtbFTtGDsYeivyl0DjQOPvAoWBWmzM8",
-      "GROUP_CHAT_ID": "-1002208163795",
-      "IsParasite": false,
-      "IsWeekPeriod": false,
-      "IsCheckHours": true,
-      "IsCheckDays": true,
-      "IsPhotoStart": true,
-      "IsAutoResponse": false,
+      "IsMenuShow": false,
+      "IsScheduledMessage": false,
       "template_type": "default"
     },
     {
@@ -106,6 +24,8 @@
       "IsCheckDays": true,
       "IsPhotoStart": true,
       "IsAutoResponse": false,
+      "IsMenuShow": true,
+      "IsScheduledMessage": true,
       "template_type": "default"
     },
     {
@@ -118,6 +38,8 @@
       "IsCheckDays": true,
       "IsPhotoStart": true,
       "IsAutoResponse": false,
+      "IsMenuShow": false,
+      "IsScheduledMessage": false,
       "host_folder": "OCTest"
     },
     {
@@ -130,6 +52,8 @@
       "IsCheckDays": true,
       "IsPhotoStart": true,
       "IsAutoResponse": false,
+      "IsMenuShow": false,
+      "IsScheduledMessage": false,
       "template_type": "default"
     },
     {
@@ -142,6 +66,8 @@
       "IsCheckDays": true,
       "IsPhotoStart": true,
       "IsAutoResponse": false,
+      "IsMenuShow": false,
+      "IsScheduledMessage": true,
       "template_type": "default"
     },
 
@@ -155,6 +81,8 @@
       "IsCheckDays": true,
       "IsPhotoStart": true,
       "IsAutoResponse": false,
+      "IsMenuShow": false,
+      "IsScheduledMessage": false,
       "template_type": "default"
     },
     {
@@ -167,6 +95,8 @@
       "IsCheckDays": true,
       "IsPhotoStart": true,
       "IsAutoResponse": false,
+      "IsMenuShow": false,
+      "IsScheduledMessage": false,
       "template_type": "default"
     },
     {
@@ -179,6 +109,8 @@
       "IsCheckDays": true,
       "IsPhotoStart": true,
       "IsAutoResponse": false,
+      "IsMenuShow": false,
+      "IsScheduledMessage": false,
       "template_type": "default"
     },
     {
@@ -191,21 +123,9 @@
       "IsCheckDays": true,
       "IsPhotoStart": true,
       "IsAutoResponse": false,
+      "IsMenuShow": true,
+      "IsScheduledMessage": true,
       "host_folder": "OC1"
-    },
-    {
-      "Folder_Name": "OCSeo",
-      "API_TOKEN": "7589072897:AAHjJqh58UdFg_BZNV0LDqxuJvBK74SlLrM",
-      "GROUP_CHAT_ID": "-1002494741678",
-      "IsParasite": false,
-      "IsWeekPeriod": false,
-      "IsCheckHours": true,
-      "IsCheckDays": true,
-      "IsPhotoStart": true,
-      "IsAutoResponse": false,
-      "template_type": "Apps",
-      "template_path": "templates/template_app_seo.py.j2",
-      "port": 5001
     },
     {
       "Folder_Name": "Mails",
@@ -217,9 +137,8 @@
       "IsCheckDays": true,
       "IsPhotoStart": true,
       "IsAutoResponse": false,
-      "template_type": "Apps",
-      "template_path": "templates/template_app_mails.py.j2",
-      "port": 5002
+      "IsMenuShow": false,
+      "IsScheduledMessage": false
     }
   ]
 }

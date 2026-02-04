@@ -1,5 +1,5 @@
 from telebot import BaseMiddleware
-from telebot.asyncio_handler_backends import CancelUpdate
+from telebot.asyncio_handler_backends import CancelUpdate, ContinueHandling
 from telebot.asyncio_helper import ApiTelegramException
 import time
 import asyncio
@@ -48,12 +48,12 @@ class RateLimitMiddleware(BaseMiddleware):
                 # Проверяем лимит альбомов
                 if len(self.album_times[user_id]) >= self.limit_albums:
                     self.blocked_albums.add(message.media_group_id)
-                    await self.bot.reply_to(
-                        message,
-                        f'Пожалуйста, подождите {self.time_window} секунд перед отправкой следующих альбомов'
-                    )
-                    return CancelUpdate()
-
+                    await asyncio.sleep(self.time_window)
+                    # await self.bot.reply_to(
+                    #     message,
+                    #     f'Пожалуйста, подождите {self.time_window} секунд перед отправкой следующих альбомов'
+                    # )
+                    return ContinueHandling()
                 self.first_messages[message.media_group_id] = message.message_id
                 self.album_times[user_id].append(current_time)
 
@@ -70,12 +70,12 @@ class RateLimitMiddleware(BaseMiddleware):
             self.message_times[user_id] = []
 
         if len(self.message_times[user_id]) >= self.limit_messages:
-            await self.bot.reply_to(
-                message,
-                f'Пожалуйста, подождите {self.time_window} секунд перед отправкой следующих сообщений'
-            )
-            return CancelUpdate()
-
+            await asyncio.sleep(self.time_window)
+            # await self.bot.reply_to(
+            #     message,
+            #     f'Пожалуйста, подождите {self.time_window} секунд перед отправкой следующих сообщений'
+            # )
+            return ContinueHandling()
         self.message_times[user_id].append(current_time)
 
     async def post_process(self, message, data, exception):

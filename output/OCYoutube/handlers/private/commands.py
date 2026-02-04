@@ -3,7 +3,7 @@ from decimal import Decimal
 from telebot.types import InputFile
 
 from ...handlers.private.markups import start_markup
-from ...loader import bot, is_parasite, prefix_folder, ADMINS
+from ...loader import bot, is_parasite, prefix_folder, ADMINS, is_menu_show
 from ...utils.calc import MAX_AMOUNT_NUM, load_currency, PAYPAL_PERCENT, PAYPAL_FIX, _SERVICES, CRYPTO_RATE, YOUTUBE_FIX
 from ...utils.checker import weekday_personal
 from ...utils.io import load_work_chats, save_work_chats
@@ -16,6 +16,7 @@ private_func = lambda message: message.chat.type == "private"
 async def handle_error(message, album: list = None, db=None, checker=None):
     raise ValueError("Тестовая ошибка")
 
+
 @bot.message_handler(commands=['start'], func=private_func)
 async def handle_start(message, album: list = None, db=None, checker=None):
     if db is None:
@@ -24,7 +25,7 @@ async def handle_start(message, album: list = None, db=None, checker=None):
 
     all_users = await db.get_all_users()
     user_name = message.from_user.username or message.from_user.first_name
-    if(is_parasite):
+    if(is_menu_show):
         msg = await bot.send_photo(message.chat.id, _('start_message-file_id'), caption=_('start_message'), parse_mode='HTML')
         await start_markup(message,msg.message_id)
         await bot.reply_to(message,_("start_reply"), parse_mode="HTML")

@@ -54,7 +54,6 @@ async def get_all_user_week_period() -> List[week_period_class]:
         async with conn.cursor() as cur:
             await cur.execute('SELECT chat_id, date FROM week_period')
             rows = await cur.fetchall()
-
             return [week_period_class(chat_id, date) for chat_id, date in rows]
 async def add_user_week_period(chat_id: int | str, date: datetime):
     async with pool.connection() as conn:
@@ -62,6 +61,8 @@ async def add_user_week_period(chat_id: int | str, date: datetime):
             await cur.execute('''
                 INSERT INTO week_period (chat_id, date)
                 VALUES (%s, %s)
+                ON CONFLICT (chat_id) 
+                DO UPDATE SET date = EXCLUDED.date;
             ''', (chat_id, date))
 
 

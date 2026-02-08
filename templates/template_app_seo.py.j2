@@ -1,0 +1,315 @@
+app = Quart(__name__)
+app = cors(app, allow_origin=["https://shopoutcast.ru"])
+@app.route('/questionnaire_result', methods=['POST'])
+async def questionnaire_result():
+    try:
+        init_data = request.headers.get('Telegram-Web-App-Init-Data')
+        if not init_data or not validate_web_app_data(TOKEN, init_data):
+            return jsonify({"error": "Invalid Telegram Web App data"}), 400
+
+        data = request.json
+        # Process and store the questionnaire data
+        # You can add your logic here to save the data to a database or perform any other actions
+
+        # Send the questionnaire results to the admins
+        for admin_id in ADMINS:
+            answers = "\n".join([f"{k}: {v}" for k, v in data['answers'].items()])
+            await bot.send_message(
+                admin_id,
+                f"Новый результат опроса:\n\nПользователь: {data['username']}\n" +
+                f"ID: {data['userId']}\n\n" +
+                "Ответы:\n" + answers
+            )
+
+        return jsonify({"success": True})
+    except Exception as e:
+        logging.error(f"Error in questionnaire_result: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/can_spin', methods=['POST'])
+async def can_spin():
+    try:
+        init_data = request.headers.get('Telegram-Web-App-Init-Data')
+        if not init_data or not validate_web_app_data(TOKEN, init_data):
+            return jsonify({"error": "Invalid Telegram Web App data"}), 400
+
+        data = request.json
+        user_id = data['userId']
+        result = await check_user_spin_availability(user_id)
+        return jsonify(result)
+    except Exception as e:
+        logging.error(f"Error in can_spin: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/spin_result', methods=['POST'])
+async def spin_result():
+    try:
+        init_data = request.headers.get('Telegram-Web-App-Init-Data')
+        if not init_data or not validate_web_app_data(TOKEN, init_data):
+            return jsonify({"error": "Invalid Telegram Web App data"}), 400
+
+        data = request.json
+        await save_spin_result(data)
+        await bot.send_message(
+            data['userId'],
+            f"🎉 Поздравляем! Вы выиграли: {data['prize']}"
+        )
+        return jsonify({"success": True})
+    except Exception as e:
+        logging.error(f"Error in spin_result: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+# Helper functions for Flask routes
+async def check_user_spin_availability(user_id):
+    # Implement your logic to check if the user can spin
+    # This is a placeholder implementation
+    return {"canSpin": True, "previousPrize": None}
+
+async def save_spin_result(data):
+    # Implement your logic to save the spin result
+    # This is a placeholder implementation
+    pass
+
+@app.route('/api/send-form', methods=['POST'])
+async def send_form():
+    try:
+        data = await request.get_json()
+        logging.info(f"Received form data: {data}")  # Логируем полученные данные
+
+        user_id = data.get('userId')
+        if not user_id:
+            logging.error("No userId provided")
+            return {
+                "status": "error",
+                "message": "User ID is required"
+            }, 400
+
+        # Проверяем наличие темы у пользователя
+        db = await aiosqlite.connect(db_path)
+        try:
+            async with db.execute('SELECT topic_id FROM users WHERE chat_id = ?', (user_id,)) as cursor:
+                row = await cursor.fetchone()
+                logging.info(f"Database query result for user {user_id}: {row}")  # Логируем результат запроса
+
+                has_topic = bool(row)
+                if row:
+                    try:
+                        await bot.get_forum_topic(GROUP_ID, row[0])
+                        logging.info(f"Valid topic found for user {user_id}")  # Логируем успешную проверку темы
+                    except Exception as e:
+                        logging.error(f"Error checking forum topic: {str(e)}")  # Логируем ошибку проверки темы
+                        has_topic = False
+        finally:
+            await db.close()
+
+        # Если у пользователя нет темы, проверяем обязательные поля
+        if not has_topic:
+            logging.info(f"No valid topic for user {user_id}, checking required fields")  # Логируем необходимость проверки полей
+            required_fields = ['channelLink']
+            if data['service'] == 'Продвижение видео по тэгу':
+                required_fields.append('tagName')
+            elif data['service'] == 'Продвижение видео бустами':
+                required_fields.append('beatLink')
+
+            missing_fields = [field for field in required_fields if not data.get(field)]
+            if missing_fields:
+                logging.error(f"Missing required fields: {missing_fields}")  # Логируем отсутствующие поля
+                return {
+                    "status": "error",
+                    "message": f"Необходимо заполнить следующие поля: {', '.join(missing_fields)}"
+                }, 400
+
+        # Create or get topic for user (Если у пользователя нет темы, этот код создаст её)
+        db_main = await aiosqlite.connect(db_path)
+        async with db_main.execute('SELECT topic_id FROM users WHERE chat_id = ?', (user_id,)) as cursor:
+            row = await cursor.fetchone()
+            if row:
+                topic_id = row[0]
+            else:
+                # Create new topic for user
+                topic_name = html.escape(data.get('firstName', 'Unknown User'))
+                forum_topic = await bot.create_forum_topic(GROUP_ID, topic_name)
+                topic_id = forum_topic.message_thread_id
+
+                # Save user data
+                await db_main.execute('''
+                    INSERT INTO users (chat_id, topic_id, user_name)
+                    VALUES (?, ?, ?)
+                ''', (user_id, topic_id, topic_name))
+                await db_main.commit()
+
+        # Format message text
+        message = f"""
+🎯 Новая заявка!
+
+От: {data.get('firstName', 'Unknown User')} (ID: {data.get('userId', 'Unknown')})
+Услуга: {data.get('service', 'Не указано')}
+{'Тариф: ' + data['tariff'] if data.get('tariff') else ''}
+{'Просмотры: ' + data['views'] if data.get('views') else ''}
+{'Длительность: ' + data['duration'] if data.get('duration') else ''}
+{'Время в день: ' + data['timePerDay'] if data.get('timePerDay') else ''}
+{'Ссылка на канал: ' + data['channelLink'] if data.get('channelLink') else ''}
+{'Ссылка на бит: ' + data['beatLink'] if data.get('beatLink') else ''}
+{'Тэг: ' + data['tagName'] if data.get('tagName') else ''}
+{'Подписчики: ' + str(data['subscribers']) if data.get('subscribers') else ''}
+{'Цена: ' + str(data['price']) + '₽' if data.get('price') else ''}
+"""
+
+        # Try to send message to user's topic
+        try:
+            await bot.send_message(
+                GROUP_ID,
+                message,
+                message_thread_id=topic_id,
+                parse_mode='HTML'
+            )
+        except Exception as e:
+            if "message thread not found" in str(e):
+                # Create new topic since old one was deleted
+                topic_name = html.escape(data.get('firstName', 'Unknown User'))
+                forum_topic = await bot.create_forum_topic(GROUP_ID, topic_name)
+                new_topic_id = forum_topic.message_thread_id
+
+                # Update topic_id in database
+                await db_main.execute('''
+                    UPDATE users
+                    SET topic_id = ?
+                    WHERE chat_id = ?
+                ''', (new_topic_id, user_id))
+                await db_main.commit()
+
+                # Delete old messages from group_messages for this topic
+                await db_main.execute('DELETE FROM group_messages WHERE topic_id = ?', (topic_id,))
+                await db_main.commit()
+
+                # Send message to new topic
+                await bot.send_message(
+                    GROUP_ID,
+                    message,
+                    message_thread_id=new_topic_id,
+                    parse_mode='HTML'
+                )
+
+        # Send confirmation to user
+        try:
+            await bot.send_message(
+                user_id,
+                "✅ Заявка отправлена, ожидайте ответа"
+            )
+            logging.info(f"Confirmation message sent to user {user_id}")  # Логируем успешную отправку сообщения
+        except Exception as e:
+            error_msg = f"Error sending confirmation to user: {str(e)}"
+            logging.error(error_msg)  # Логируем ошибку отправки сообщения
+            return {
+                "status": "error",
+                "message": "Не удалось отправить сообщение. Возможно, бот не запущен"
+            }, 400
+
+        return {"status": "success"}, 200
+
+    except Exception as e:
+        error_msg = f"Error in send_form: {str(e)}"
+        logging.error(error_msg)  # Логируем общую ошибку обработки запроса
+        return {
+            "status": "error",
+            "message": str(e)
+        }, 500
+
+@app.route('/api/send-form', methods=['OPTIONS'])
+async def handle_preflight():
+    return {
+        "status": "ok"
+    }, 200, {
+        'Access-Control-Allow-Origin': 'https://shopoutcast.ru',
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Methods': 'POST',
+        'Content-Type': 'application/json'
+    }
+
+@app.route('/api/check-topic', methods=['POST'])
+async def check_topic():
+    try:
+        data = await request.get_json()
+        user_id = data.get('userId')
+
+        if not user_id:
+            return jsonify({"hasTopic": False}), 200
+
+        db = await aiosqlite.connect(db_path)
+        try:
+            async with db.execute('SELECT topic_id FROM users WHERE chat_id = ?', (user_id,)) as cursor:
+                row = await cursor.fetchone()
+
+                if not row:
+                    return jsonify({"hasTopic": False}), 200
+
+                # Проверяем, существует ли тема
+                try:
+                    await bot.get_chat(GROUP_ID) # Проверка на существование группы
+                    await bot.get_forum_topic(GROUP_ID, row[0]) # Используем get_forum_topic
+                    return jsonify({"hasTopic": True}), 200
+                except telebot.asyncio_helper.ApiTelegramException as e:
+                    if "chat not found" in str(e):
+                        return jsonify({"hasTopic": False, "error": "Group not found"}), 200
+                    elif "message thread not found" in str(e):
+                        return jsonify({"hasTopic": False, "error": "Topic not found"}), 200
+                    else:
+                        # Если другая ошибка API
+                        return jsonify({"hasTopic": False, "error": "API Error"}), 200
+
+        finally:
+            await db.close()
+
+    except Exception as e:
+        logging.error(f"Error in check_topic: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+# Modified main function to run both Flask and bot
+async def main():
+    global db_path
+    print("Бот и Flask сервер запущены!")
+    setup_logging()
+    db_object = await init_db(db_path)
+    rules_checker = [
+        {"type": "private", "timeout": timedelta(hours=1), "action": days_ping}
+    ]
+    rules_checker.append({"type": "weekend", "day": 5} if is_weekend_have else {"type": "none"})
+    rules_checker.append({"type": "weekend", "day": 6} if is_weekend_have else {"type": "none"})
+    rules_checker.append({"type": "latehour", "hour": 19} if is_latehour_have else {"type": "none"})
+    bot.add_custom_filter(asyncio_filters.StateFilter(bot))
+    # bot.setup_middleware(RateLimitMiddleware(limit_messages=5,limit_albums=3,time_window=40, bot=bot))
+    bot.setup_middleware(StateMiddleware(bot))
+    bot.setup_middleware(UserTimeChecker(GROUP_ID, db_path))
+    bot.setup_middleware(DatabaseMiddleware(db_object, bot, GROUP_ID))
+    bot.setup_middleware(AlbumMiddleware())
+    while True:
+        try:
+            if scheduler.running == False:
+                scheduler.start()
+            config = Config()
+            config.bind = ["0.0.0.0:{{ port }}"]
+
+            cert_path = "/etc/letsencrypt/live/shopoutcast.ru/fullchain.pem"
+            key_path = "/etc/letsencrypt/live/shopoutcast.ru/privkey.pem"
+
+            if os.path.exists(cert_path) and os.path.exists(key_path):
+                print("Сертификаты найдены, запускаем с HTTPS")
+                config.certfile = cert_path
+                config.keyfile = key_path
+            else:
+                print("Сертификаты не найдены, запускаем без HTTPS")
+
+            # Запускаем бота в отдельной задаче
+            bot_task = asyncio.create_task(bot.infinity_polling())
+
+            # Запускаем веб-сервер в отдельной задаче
+            web_task = asyncio.create_task(serve(app, config))
+
+            # Ждем выполнения обеих задач
+            await asyncio.gather(bot_task, web_task)
+
+        except Exception as e:
+            logging.error(f"An error occurred код ошибки: {e}", exc_info=True)
+            await db_object.close()
+            if scheduler.running:
+                scheduler.shutdown()

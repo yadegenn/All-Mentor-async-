@@ -1,16 +1,19 @@
 from datetime import timedelta
 from pathlib import Path
+from dotenv import load_dotenv
+import os
 from psycopg_pool import AsyncConnectionPool
 from telebot.async_telebot import AsyncTeleBot
 from telebot.asyncio_storage import StateMemoryStorage
+load_dotenv()
 GROUP_ID = {{ GROUP_CHAT_ID }}
 TOKEN = '{{ API_TOKEN }}'
 prefix = '{{Folder_Name}}'
 prefix_folder = f"{prefix}/"
-db_str = f"dbname={prefix} user=admin password=E-M_i-LGO0 host=5.129.223.183"
+db_str = f"dbname={prefix} user={os.getenv("db_user")} password={os.getenv("db_password")} host={os.getenv("db_ip")}"
 WORK_CHAT_FILE = f'{prefix_folder}work_chat.txt'
-DEVELOPER_ID = 5434361630
-ADMINS = [5434361630,6929772573]
+DEVELOPER_ID = os.getenv("DEVELOPER_ID")
+ADMINS = [int(admin) for admin in os.getenv("ADMINS").split(",")]
 # is_weekend_have = False
 # is_latehour_have = True
 # is_photo_start = True
